@@ -2,7 +2,6 @@
 #define OEMRESOURCE
 #endif
 #include <Windows.h>
-#include <map>
 
 #include <GL/gl.h>
 #include <CommCtrl.h>
@@ -14,6 +13,7 @@
 #include "rgbe.h"
 #include "ShaderObject.h"
 #include "ProgramGLSL.h"
+#include "GLTexImage.h"
 
 #include "Controls.h"
 
@@ -388,6 +388,7 @@ BOOL SceneRender::Initialize( void )
 	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );	
 
 	V_RET( this->InitTexture() );
+	V_RET( this->InitRenderTagets() );
 	V_RET( this->InitShaders() );
 
 	return TRUE;
@@ -423,8 +424,10 @@ BOOL SceneRender::InitShaders( void )
 }
 
 BOOL SceneRender::InitRenderTagets( void )
-{
-
+{	
+	this->m_DSTex.InitTexture( m_nWidth / 2, m_nHeight / 2 );
+	this->m_BlurXTex.InitTexture( m_nWidth / 2, m_nHeight / 2 );
+	this->m_BlurYTex.InitTexture( m_nWidth / 2, m_nHeight / 2 );
 	return TRUE;
 }
 

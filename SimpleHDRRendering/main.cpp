@@ -6,6 +6,12 @@
 //#include <GdiPlus.h>
 #include <cstdio>
 
+#include <GL/gl.h>
+#include <map>
+
+#include "ShaderObject.h"
+#include "ProgramGLSL.h"
+
 #include "resource.h"
 #include "Controls.h"
 
