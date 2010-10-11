@@ -6,7 +6,6 @@
 BOOL InitControls( HINSTANCE hInstance );
 HWND CreateToolBar( HWND hWndParent );
 
-
 class DisplayWidget 
 {
 public:
@@ -96,6 +95,10 @@ private:
 	ProgramGLSL m_BlurXProgram;
 	ProgramGLSL m_BlurYProgram;
 	ProgramGLSL m_TonemapProgram;
+	GLTexInput m_FullTex;
+	GLTexImage m_DSTex;
+	GLTexImage m_BlurXTex;
+	GLTexImage m_BlurYTex;
 };
 
 #define RET(b) \
