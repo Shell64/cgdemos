@@ -87,24 +87,35 @@ protected:
 
 	BOOL InitRenderTagets( void );
 
+	void UpdateViewport();
+
 private:
 	GLuint m_TexID;
 	int m_nWidth;
 	int m_nHeight;
-	ProgramGLSL m_DownsampleProgram;
-	ProgramGLSL m_BlurXProgram;
-	ProgramGLSL m_BlurYProgram;
-	ProgramGLSL m_TonemapProgram;
-	GLTexInput m_FullTex;
-	GLTexImage m_DSTex;
-	GLTexImage m_BlurXTex;
-	GLTexImage m_BlurYTex;
+	ProgramGLSL* m_pDownsampleProgram;
+	ProgramGLSL* m_pBlurXProgram;
+	ProgramGLSL* m_pBlurYProgram;
+	ProgramGLSL* m_pTonemapProgram;
+
+	GLTexInput* m_pHdrTex;
+	GLTexImage* m_pFullTex;
+	GLTexImage* m_pDSTex;
+	GLTexImage* m_pBlurXTex;
+	GLTexImage* m_pBlurYTex;
+	float* m_GK;
 };
 
 #define RET(b) \
-	if ( !b ) return;
+	if ( !(b) ) return;
 
 #define V_RET(b) \
-	if ( !b ) return FALSE;
+	if ( !(b) ) return FALSE;
+
+#define SAFE_RELEASE(p) \
+	if ( NULL != p ) { \
+		delete p; \
+		p = NULL; \
+	}
 
 #endif//__CONTROLS_H__

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 
+#include "glErrorUtil.h"
 #include "ShaderObject.h"
 #include "ProgramGLSL.h"
 
@@ -26,7 +27,8 @@ bool ProgramGLSL::UseProgram()
 	}
 	else
 	{
-		std::cout << "invalid program: " << this->m_tag << std::endl;
+		CheckErrorsGL( this->m_tag.c_str(), LogStream::LS() );
+		//std::cout << "invalid program: " << this->m_tag << std::endl;
 		return false;
 	}
 }
@@ -47,7 +49,7 @@ void ProgramGLSL::PrintLinkLog( std::ostream&os )
 
 	if( strstr( linkLog, "failed" ) )
 	{
-		os << linkLog + ( linkLog[0] == ' '? 1 : 0 ) << "\n";
+		os << m_tag << "\t" << linkLog + ( linkLog[0] == ' '? 1 : 0 ) << "\n";
 		m_is_linked = false;
 	}
 
@@ -62,7 +64,7 @@ void ProgramGLSL::CheckLinkLog()
 
 	if ( !m_is_linked )
 	{
-		PrintLinkLog( std::cout );
+		PrintLinkLog( LogStream::LS() );
 	}
 }
 
