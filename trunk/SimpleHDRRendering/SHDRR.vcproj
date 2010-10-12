@@ -184,6 +184,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Gaussian.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\glErrorUtil.cpp"
 				>
 			</File>
@@ -219,6 +223,10 @@
 			</File>
 			<File
 				RelativePath=".\framebufferObject.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Gaussian.h"
 				>
 			</File>
 			<File
@@ -327,6 +335,50 @@
 		<Filter
 			Name="Tool"
 			>
+		</Filter>
+		<Filter
+			Name="Shaders"
+			>
+			<File
+				RelativePath=".\blur.fs"
+				>
+			</File>
+			<File
+				RelativePath=".\blur.vs"
+				>
+			</File>
+			<File
+				RelativePath=".\BX_FS.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\BX_VS.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\BY_FS.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\BY_VS.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\DS_FS.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\DS_VS.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\TM_FS.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\TM_VS.glsl"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

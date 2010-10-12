@@ -11,6 +11,7 @@
 
 #include "ShaderObject.h"
 #include "ProgramGLSL.h"
+#include "GLTexImage.h"
 
 #include "resource.h"
 #include "Controls.h"
@@ -39,7 +40,6 @@ int WINAPI WinMain( HINSTANCE hInstance,
 {	
 	BOOL bSuccess = TRUE;
 	MSG msg = { 0 };
-	BOOL bRet;
 
 	/*GdiplusStartupInput gdiplusStartupInput;
 	ULONG_PTR gdiplusToken = NULL;*/
@@ -68,17 +68,19 @@ int WINAPI WinMain( HINSTANCE hInstance,
 
 	g_hInstance = hInstance;
 
-	while ( 0 != ( bRet = GetMessage( &msg, NULL, 0, 0 ) ) ) 
+	while( msg.message != WM_QUIT )
 	{
-		if ( -1 == bRet ) 
+		if ( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) )
 		{
-			bSuccess = FALSE;
-			goto exit_func;
+			TranslateMessage( &msg );
+			DispatchMessage( &msg );
 		}
-
-		TranslateMessage( &msg );
-		DispatchMessage( &msg );
-	}
+		else 
+		{
+			if ( NULL != g_pDisplayWidget )
+				g_pDisplayWidget->Display();
+		}
+	}	
 
 exit_func:
 
@@ -203,7 +205,7 @@ LRESULT CALLBACK MainWndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam 
 		break;
 
 	case WM_CREATE:	
-		g_pDisplayWidget = new SceneRender( hWnd );
+		g_pDisplayWidget = new SceneRender( hWnd );		
 		if ( NULL == g_pDisplayWidget ) 
 		{
 			::PostMessage( hWnd, WM_CLOSE, 0, 0 );

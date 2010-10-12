@@ -1,7 +1,7 @@
 #include <gl/glew.h>
 #include <stdio.h>
 #include <iostream>
-
+#include "glErrorUtil.h"
 #include "ShaderObject.h"
 
 ShaderObject::ShaderObject( int type, const char* source, bool is_file /*= false */ )
@@ -72,7 +72,7 @@ void ShaderObject::CheckCompileLog()
 	glGetShaderiv( m_shaderID, GL_COMPILE_STATUS, &status );
 	m_is_compiled = ( status == GL_TRUE );
 
-	if( ! m_is_compiled )	PrintCompileLog( std::cout );
+	if( ! m_is_compiled )	PrintCompileLog( LogStream::LS() );
 }
 
 void ShaderObject::PrintCompileLog( std::ostream & os )

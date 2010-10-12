@@ -31,13 +31,25 @@ void GLTexImage::UnbindTex()
 	glBindTexture( GlobalUtil::s_texTarget, 0 );
 }
 
+void GLTexImage::DrawQuad( int x1, int y1, int x2, int y2 )
+{
+	glClear( GL_COLOR_BUFFER_BIT );
+	glBegin (GL_QUADS);
+	glTexCoord2i ( 0, 0 );  glVertex2i( x1, y1 ); 
+	glTexCoord2i ( 0, 1 );  glVertex2i( x1, y2 ); 
+	glTexCoord2i ( 1, 1 );	glVertex2i( x2, y2 ); 
+	glTexCoord2i ( 1, 0 );  glVertex2i( x2, y1 ); 
+	glEnd ();
+	glFlush();
+}
+
 void GLTexImage::DrawQuad()
 {
 	glBegin (GL_QUADS);
 	glTexCoord2i ( 0, 0 );                     glVertex2i( 0, 0 ); 
-	glTexCoord2i ( 0, m_drawHeight  );         glVertex2i( 0, m_drawHeight ); 
-	glTexCoord2i ( m_drawWidth, m_drawHeight );glVertex2i( m_drawWidth, m_drawHeight ); 
-	glTexCoord2i ( m_drawWidth, 0 );           glVertex2i( m_drawWidth, 0 ); 
+	glTexCoord2i ( 0, 1  );         glVertex2i( 0, m_drawHeight ); 
+	glTexCoord2i ( 1, 1 );			glVertex2i( m_drawWidth, m_drawHeight ); 
+	glTexCoord2i ( 1, 0 );           glVertex2i( m_drawWidth, 0 ); 
 	glEnd ();
 	glFlush();
 }
@@ -116,7 +128,7 @@ void GLTexImage::DrawImage( )
 
 void GLTexImage::FitViewport( )
 {	
-	glViewport( 0, 0, m_drawWidth, m_drawHeight );      
+	glViewport( 0, 0, m_drawWidth, m_drawHeight ); 
 	glMatrixMode( GL_PROJECTION );    
 	glLoadIdentity();
 	glOrtho( 0, m_drawWidth, 0, m_drawHeight,  0, 1 );		
@@ -171,7 +183,7 @@ bool GLTexInput::SetImageData( int width, int height,
 
 	glTexImage2D( GlobalUtil::s_texTarget, 0, gl_iformat, //internal format changed
 		m_imageWidth, m_imageHeight, 0,
-		gl_format, GL_UNSIGNED_BYTE, data );
+		gl_format, gl_type, data );
 	
 	UnbindTex();
 
@@ -197,6 +209,7 @@ bool GLTexInput::LoadImageFromFile( const char* filename,
 	int height = ilGetInteger( IL_IMAGE_HEIGHT );	
 
 	int ilformat = ilGetInteger( IL_IMAGE_FORMAT );	
+	int bpp = ilGetInteger( IL_IMAGE_BITS_PER_PIXEL );
 	bool ret = true;
 
 	if ( color || GL_LUMINANCE == ilformat )
@@ -204,7 +217,7 @@ bool GLTexInput::LoadImageFromFile( const char* filename,
 		GLuint iformat = GL_RGBA32F_ARB;
 		if ( GL_LUMINANCE == ilformat )
 			iformat = GL_LUMINANCE32F_ARB;
-		ret = SetImageData( width, height, ilGetData(), iformat, ilformat, GL_UNSIGNED_BYTE );
+		ret = SetImageData( width, height, ilGetData(), iformat, ilformat, GL_FLOAT );
 	}
 	else 
 	{

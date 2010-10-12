@@ -16,6 +16,8 @@ public:
 
 	void DrawQuad();
 
+	void DrawQuad( int x1, int y1, int x2, int y2 );
+
 	void DrawImage( );
 
 	void AttachToFBO( int i );
