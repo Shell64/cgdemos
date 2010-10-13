@@ -117,8 +117,7 @@ BOOL GLWidget::OnResize( WPARAM wParam, LPARAM lParam )
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();	
-
-	//::InvalidateRect( _hWnd, NULL, TRUE );
+	
 	return FALSE;
 }
 
@@ -133,7 +132,7 @@ BOOL GLWidget::OnPaint( WPARAM wParam, LPARAM lParam )
 
 void GLWidget::SetPosition( int x, int y, int width, int height )
 {
-	::MoveWindow( _hWnd, x, y, width, height, TRUE );
+	::MoveWindow( _hWnd, x, y, width, height, FALSE );
 }
 
 BOOL GLWidget::Initialize( void )
