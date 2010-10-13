@@ -113,7 +113,7 @@ CBaseWindow::CBaseWindow(LPCSTR lpszClassName,
 	wndClass.hInstance = hInstance;
 	wndClass.hIcon = hIcon ;
 	wndClass.hCursor = hCursor == NULL ? LoadCursor( NULL, IDC_ARROW ) : hCursor;
-	wndClass.hbrBackground = hBackground;
+	wndClass.hbrBackground = hBackground == NULL ? (HBRUSH)( COLOR_WINDOW ) : hBackground ;
 	wndClass.lpszMenuName = lpszMenuName;
 	wndClass.lpszClassName = lpszClassName;
 
@@ -194,7 +194,7 @@ BOOL CBaseWindow::OnKeyUp( WPARAM wParam, LPARAM lParam )
 }
 
 BOOL CBaseWindow::OnResize( WPARAM wParam, LPARAM lParam )
-{
+{	
 	return TRUE;
 }
 
