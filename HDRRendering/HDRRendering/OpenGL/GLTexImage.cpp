@@ -1,6 +1,5 @@
-#include <gl/glew.h>
-#include <iostream>
-#include "il/il.h"
+#include "../std.h"
+#include "OpenGL.h"
 
 #include "GlobalUtil.h"
 #include "glErrorUtil.h"

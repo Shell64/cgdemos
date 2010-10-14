@@ -1,22 +1,6 @@
 #ifndef __JUPITER_WINDOW_H__
 #define __JUPITER_WINDOW_H__
 
-//class WindowConfig
-//{
-//public:
-//	WindowConfig();
-//
-//	inline const std::string& WindowName() const 
-//	{ return _windowName; }
-//
-//	inline const std::string& ClassName() const
-//	{ return _className; }
-//
-//private:
-//	std::string _windowName;
-//	std::string _className;	
-//};
-
 class CBaseWindow
 {
 public:
@@ -24,10 +8,10 @@ public:
 	CBaseWindow( LPCSTR lpszClassName, 
 		LPCSTR lpszWindowName = NULL,
 		DWORD dwStyle = WS_OVERLAPPEDWINDOW,
-		HWND hParrentWnd = NULL,
+		HWND hParrentWnd = NULL,	
+		HBRUSH hBackground = (HBRUSH)(COLOR_WINDOW),
 		HICON hIcon = NULL,
-		HCURSOR hCursor = NULL,
-		HBRUSH hBackground = NULL,
+		HCURSOR hCursor = LoadCursor( NULL, IDC_ARROW ),
 		LPCSTR lpszMenuName = NULL );
 
 	virtual ~CBaseWindow(void);
@@ -65,17 +49,16 @@ protected:
 
 protected:
 	typedef std::map< HWND, CBaseWindow* > WindowMap;
-
 	HWND _hWnd;
 	HINSTANCE _hInstance;	
 	
 	static WindowMap s_WindowMap;
 	inline static CBaseWindow* FindWindow( HWND hWnd );
-
 	static CBaseWindow* s_CurrentWnd;
 
 	friend LRESULT CALLBACK WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam );
 };
+
 
 class GLWidget;
 
@@ -87,14 +70,15 @@ public:
 
 	virtual ~MainWindow( void ) { }
 
-protected:
-	virtual BOOL OnCreate( HWND hWnd, WPARAM wParam, LPARAM lParam );
+	virtual int Run( void );
 
+protected:
 	virtual BOOL OnResize( WPARAM wParam, LPARAM lParam );
 
 
 protected:
-	GLWidget* _glWidget;
+	GLWidget* _glWidgets[2];
+	int _current;
 };
 
 #else

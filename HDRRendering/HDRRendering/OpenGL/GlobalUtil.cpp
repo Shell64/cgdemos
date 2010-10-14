@@ -1,7 +1,6 @@
-#include <gl/glew.h>
-#include <stdio.h>
+#include "../std.h"
+#include "OpenGL.h"
 
-#include "il/il.h"
 #include "GlobalUtil.h"
 
 GlobalUtil::GlobalUtil(void)

@@ -39,6 +39,7 @@ OF SUCH DAMAGE.
 
 #include "glErrorUtil.h"
 #include <GL/glew.h>
+#include <string>
 using namespace std;
 
 
@@ -46,22 +47,29 @@ using namespace std;
 #ifndef NDEBUG
 void CheckErrorsGL(const char* location, ostream& ostr) 
 {	
-  GLuint errnum;
-  const char *errstr;
-  while (errnum = glGetError()) {
-    errstr = reinterpret_cast<const char *>(gluErrorString(errnum));
-    if(errstr) {
-      ostr << errstr; 
-    }
-    else {
-      ostr << "Error " << errnum;
-    }
-    
-    if(location) ostr << " at " << location;		
-    ostr << endl;
-  }
+	GLuint errnum;
+	const char *errstr;
+	while ( errnum = glGetError() ) {
+		errstr = reinterpret_cast<const char *>(gluErrorString(errnum));
+		if(errstr) {
+			ostr << errstr; 
+		}
+		else {
+			ostr << "Error " << errnum;
+		}
 
-  return;
+		if(location) ostr << " at " << location;		
+		ostr << endl;
+	}
+
+	return;
+}
+
+void LogError( const std::string& err_info, 
+			  const std::string& location /*= std::string()*/,
+			  std::ostream& ostr /*= std::cerr */ )
+{
+	ostr << err_info << " at" << location << endl;	
 }
 
 LogStream LogStream::LS;

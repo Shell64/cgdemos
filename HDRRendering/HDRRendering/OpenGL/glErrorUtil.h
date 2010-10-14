@@ -53,14 +53,6 @@
 // - The second parameter determines the destination of the error
 //   message. It defaults to cerr, but could also be a file.
 #ifndef NDEBUG
-void CheckErrorsGL( const char* location = NULL, 
-		                std::ostream& ostr = std::cerr );
-#else
-inline void CheckErrorsGL( const char* location = NULL, 
-			                     std::ostream& ostr = std::cerr ) 
-{}
-#endif 
-
 
 class LogStream
 {
@@ -84,6 +76,48 @@ private:
 private:
 	std::fstream _file;
 };
+
+void CheckErrorsGL( const char* location = NULL, 
+				   std::ostream& ostr = LogStream::LS() );
+
+void LogError( const std::string& err_info,
+			  const std::string& location = std::string(),
+			  std::ostream& ostr = LogStream::LS() );
+
+#else
+inline void CheckErrorsGL( const char* location = NULL, 
+			                     std::ostream& ostr = std::cerr ) 
+{}
+
+inline void LogError( const std::string& err_info,
+					 const std::string& location = std::string(),
+					 std::ostream& ostr = std::cerr )
+{
+
+}
+
+class LogStream
+{
+public:
+
+	inline std::ostream& operator()() { return _ostr; }
+
+	static LogStream LS;
+
+private:
+	LogStream()
+	{
+	
+	}
+	~LogStream()
+	{		
+	}
+
+private:
+	std::ostream _ostr;
+};
+
+#endif 
 
 #endif
 
