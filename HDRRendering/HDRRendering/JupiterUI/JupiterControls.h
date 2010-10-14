@@ -27,17 +27,25 @@ protected:
 
 	BOOL MakeCurrent( void );
 
+	void SaveMVPMatrices( void );
+
+	void RestoreMVPMatrices( void );
+
 protected:
 	HGLRC _hGLRC;
 	HDC _hDC;
+
+	static GLdouble s_ModelView[16];
+	static GLdouble s_Projection[16];
+	static GLint s_Viewport[4];
 };
 
-class SceneRender : public GLWidget
+class SHDRRender : public GLWidget
 {
 public:
-	SceneRender( HWND hParentWnd );
+	SHDRRender( HWND hParentWnd );
 
-	~SceneRender();
+	~SHDRRender();
 
 	virtual BOOL Initialize();
 
@@ -52,19 +60,15 @@ protected:
 
 	BOOL InitRenderTagets( void );
 
-	void UpdateViewport();
+	float GetExposure( void );
 
 private:
-	GLuint m_TexID;
-	int m_nWidth;
-	int m_nHeight;
 	ProgramGLSL* m_pDownsampleProgram;
 	ProgramGLSL* m_pBlurXProgram;
 	ProgramGLSL* m_pBlurYProgram;
 	ProgramGLSL* m_pTonemapProgram;
 
-	GLTexInput* m_pHdrTex;
-	GLTexImage* m_pFullTex;
+	GLTexInput* m_pHdrTex;	
 	GLTexImage* m_pDSTex;
 	GLTexImage* m_pBlurXTex;
 	GLTexImage* m_pBlurYTex;
