@@ -130,7 +130,7 @@ void GLTexImage::FitViewport( )
 	glViewport( 0, 0, m_drawWidth, m_drawHeight ); 
 	glMatrixMode( GL_PROJECTION );    
 	glLoadIdentity();
-	glOrtho( 0, m_drawWidth, 0, m_drawHeight,  0, 1 );		
+	glOrtho( 0, m_drawWidth, 0, m_drawHeight,  0, 1 );
 	glMatrixMode( GL_MODELVIEW );     
 	glLoadIdentity();
 }

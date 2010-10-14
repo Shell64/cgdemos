@@ -6,6 +6,7 @@
 
 #include "resource.h"
 
+#include "../OpenGL/glErrorUtil.h"
 #include "JupiterWindow.h"
 #include "JupiterControls.h"
 
@@ -149,34 +150,67 @@ BOOL GLWidget::Initialize( void )
 	return TRUE;
 }
 
-BOOL SceneRender::OnResize( WPARAM wParam, LPARAM lParam )
+void GLWidget::SaveMVPMatrices( void )
+{
+	glGetIntegerv( GL_VIEWPORT, s_Viewport );
+	glGetDoublev( GL_MODELVIEW_MATRIX, s_ModelView );
+	glGetDoublev( GL_PROJECTION_MATRIX, s_Projection );	
+}
+
+void GLWidget::RestoreMVPMatrices( void )
+{
+	glViewport( s_Viewport[0], s_Viewport[1],
+		s_Viewport[2], s_Viewport[3] );
+
+	glMatrixMode( GL_PROJECTION );
+	glLoadMatrixd( s_Projection );
+
+	glMatrixMode( GL_MODELVIEW );
+	glLoadMatrixd( s_ModelView );
+}
+
+GLint GLWidget::s_Viewport[4];
+
+GLdouble GLWidget::s_Projection[16];
+
+GLdouble GLWidget::s_ModelView[16];
+
+
+BOOL SHDRRender::OnResize( WPARAM wParam, LPARAM lParam )
 {	
 	int width = LOWORD(lParam);
 	int height = HIWORD(lParam);
-	m_nWidth = width;
-	m_nHeight = height;
+	
+	glViewport( 0, 0, width, height );
+
+	glMatrixMode( GL_PROJECTION );
+	glLoadIdentity();
+	int right = width/2;
+	int left = -right;
+	int bottom = height/2;
+	int top = - bottom;
+	glOrtho( left, right, bottom, top, -100, 100 );
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();	
+
 	return FALSE;
 }
 
-BOOL SceneRender::OnPaint( WPARAM wParam, LPARAM lParam )
+BOOL SHDRRender::OnPaint( WPARAM wParam, LPARAM lParam )
 {
 	F_RET( this->MakeCurrent() );
 	glClear( GL_COLOR_BUFFER_BIT );
 
-	glEnable(GL_TEXTURE_2D); /* enable texture mapping */
-
+	glEnable(GL_TEXTURE_2D); /* enable texture mapping */	
 	FramebufferObject fbo;
 	fbo.Bind();
 
-	//draw full
-	m_pFullTex->AttachToFBO( 0 );
-	m_pFullTex->FitViewport();
-	m_pHdrTex->BindTex();
-	m_pFullTex->DrawQuad();
+	SaveMVPMatrices();	
 
 	//down sample
-	m_pDSTex->AttachToFBO( 0 );
-	m_pFullTex->BindTex();
+	m_pDSTex->AttachToFBO( 0 );	
+	m_pHdrTex->BindTex();
 	GLint texParam = m_pDownsampleProgram->GetUniformLocation( "Tex" );
 	m_pDownsampleProgram->UseProgram();
 	glUniform1i( texParam, 0 );
@@ -218,13 +252,13 @@ BOOL SceneRender::OnPaint( WPARAM wParam, LPARAM lParam )
 
 	//display
 	FramebufferObject::Disable();
+	glDisable( GL_TEXTURE_2D );
 
-	this->UpdateViewport();
-	glActiveTextureARB( GL_TEXTURE0_ARB );
-	//glEnable( GL_TEXTURE_2D );
-	m_pFullTex->BindTex();
-	glActiveTextureARB( GL_TEXTURE1_ARB );
-	//glEnable( GL_TEXTURE_2D );
+	RestoreMVPMatrices();
+
+	glActiveTextureARB( GL_TEXTURE0_ARB );	
+	m_pHdrTex->BindTex();
+	glActiveTextureARB( GL_TEXTURE1_ARB );	
 	m_pBlurYTex->BindTex();
 
 	m_pTonemapProgram->UseProgram();
@@ -236,23 +270,17 @@ BOOL SceneRender::OnPaint( WPARAM wParam, LPARAM lParam )
 	glUniform1i( bluredTexParam, 1 );
 
 	GLint exposureParam = m_pTonemapProgram->GetUniformLocation( "exposureLevel" );
-	static float exposure = 2.5f;
-	if ( exposure < 0.f )
-		exposure = 0.01f;
-	else if ( exposure <= 10.f )
-		exposure += 0.01f;
-	else exposure = 0.01f;
-	glUniform1f( exposureParam, exposure );
+	
+	glUniform1f( exposureParam, GetExposure() );
 
-	int left = - m_pFullTex->GetTexWidth()/2;
-	int bottom = -m_pFullTex->GetTexHeight()/2;
+	int left = -m_pHdrTex->GetTexWidth()/2;
+	int bottom = -m_pHdrTex->GetTexHeight()/2;
 	m_pHdrTex->DrawQuad( left, bottom, -left, -bottom );
 
 	glUseProgram( 0 );	
 
-	//the sequence is very important
-	glActiveTextureARB( GL_TEXTURE1_ARB );
-	glDisable( GL_TEXTURE_2D );
+	//only need to disable GL_TEXTURE0_ARB, otherwise
+	//it'll affect the normal texture operation
 	glActiveTextureARB( GL_TEXTURE0_ARB );
 	glDisable( GL_TEXTURE_2D );
 
@@ -261,7 +289,7 @@ BOOL SceneRender::OnPaint( WPARAM wParam, LPARAM lParam )
 	return TRUE;
 }
 
-BOOL SceneRender::Initialize()
+BOOL SHDRRender::Initialize()
 {
 	F_RET( GLWidget::Initialize() );
 
@@ -275,32 +303,24 @@ BOOL SceneRender::Initialize()
 	return TRUE;
 }
 
-BOOL SceneRender::InitShaders( void )
+BOOL SHDRRender::InitShaders( void )
 {
-	V_RET( this->m_pDownsampleProgram = new ProgramGLSL( "down sample" ) );
-	/*this->m_pDownsampleProgram->AttachShaderObject(
-		ShaderObject( GL_VERTEX_SHADER, "shaders/DS_VS.glsl", true ) );*/
+	V_RET( this->m_pDownsampleProgram = new ProgramGLSL( "down sample" ) );	
 	this->m_pDownsampleProgram->AttachShaderObject(
 		ShaderObject( GL_FRAGMENT_SHADER, "shaders/DS_FS.glsl", true ) );
 	V_RET( this->m_pDownsampleProgram->LinkProgram() );
 
 	V_RET( this->m_pBlurXProgram = new ProgramGLSL( "blur X" ) );
-	/*this->m_pBlurXProgram->AttachShaderObject(
-		ShaderObject( GL_VERTEX_SHADER, "shaders/BX_VS.glsl", true ) );*/
 	this->m_pBlurXProgram->AttachShaderObject(
 		ShaderObject( GL_FRAGMENT_SHADER, "shaders/BX_FS.glsl", true ) );
 	V_RET( this->m_pBlurXProgram->LinkProgram() );
 
 	V_RET( this->m_pBlurYProgram = new ProgramGLSL( "blur Y" ) );
-	//this->m_pBlurYProgram->AttachShaderObject(
-	//	ShaderObject( GL_VERTEX_SHADER, "shaders/BY_VS.glsl", true ) );
 	this->m_pBlurYProgram->AttachShaderObject(
 		ShaderObject( GL_FRAGMENT_SHADER, "shaders/BY_FS.glsl", true ) );
 	V_RET( this->m_pBlurYProgram->LinkProgram() );
 
 	V_RET( this->m_pTonemapProgram = new ProgramGLSL( "tone mapping" ) );
-	//this->m_pTonemapProgram->AttachShaderObject(
-	//	ShaderObject( GL_VERTEX_SHADER, "shaders/TM_VS.glsl", true ) );
 	this->m_pTonemapProgram->AttachShaderObject(
 		ShaderObject( GL_FRAGMENT_SHADER, "shaders/TM_FS.glsl", true ) );
 	V_RET( this->m_pTonemapProgram->LinkProgram() );
@@ -308,13 +328,10 @@ BOOL SceneRender::InitShaders( void )
 	return TRUE;
 }
 
-BOOL SceneRender::InitRenderTagets( void )
+BOOL SHDRRender::InitRenderTagets( void )
 {	
 	int width = m_pHdrTex->GetTexWidth();
 	int height = m_pHdrTex->GetTexHeight();
-
-	V_RET( m_pFullTex = new GLTexImage() );
-	this->m_pFullTex->InitTexture( width, height );
 
 	V_RET( m_pDSTex = new GLTexImage() );
 	this->m_pDSTex->InitTexture( width / 2, height / 2 );
@@ -327,7 +344,7 @@ BOOL SceneRender::InitRenderTagets( void )
 	return TRUE;
 }
 
-BOOL SceneRender::InitTexture( void )
+BOOL SHDRRender::InitTexture( void )
 {
 	V_RET( m_pHdrTex = new GLTexInput() );
 	V_RET( m_pHdrTex->LoadImageFromFile( "RNL.hdr" ) );
@@ -335,32 +352,13 @@ BOOL SceneRender::InitTexture( void )
 	return TRUE;
 }
 
-void SceneRender::UpdateViewport()
-{
-	int width = m_nWidth;
-	int height = m_nHeight;
-
-	glViewport( 0, 0, width, height );
-
-	glMatrixMode( GL_PROJECTION );
-	glLoadIdentity();
-	int right = width/2;
-	int left = -right;
-	int bottom = height/2;
-	int top = - bottom;
-	glOrtho( left, right, bottom, top, -100, 100 );
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();	
-}
-
-SceneRender::SceneRender( HWND hParentWnd )
+SHDRRender::SHDRRender( HWND hParentWnd )
 :GLWidget( hParentWnd )
 {
 
 }
 
-SceneRender::~SceneRender()
+SHDRRender::~SHDRRender()
 {
 	SAFE_RELEASE( m_pDownsampleProgram );
 	SAFE_RELEASE( m_pBlurXProgram );
@@ -369,10 +367,20 @@ SceneRender::~SceneRender()
 
 
 	SAFE_RELEASE( m_pHdrTex );
-	SAFE_RELEASE( m_pFullTex );
 	SAFE_RELEASE( m_pDSTex );
 	SAFE_RELEASE( m_pBlurXTex );
 	SAFE_RELEASE( m_pBlurYTex );
 
 	SAFE_RELEASE( m_GK );
+}
+
+float SHDRRender::GetExposure( void )
+{
+	static float exposure = 2.5f;
+	if ( exposure < 0.f )
+		exposure = 0.01f;
+	else if ( exposure <= 10.f )
+		exposure += 0.01f;
+	else exposure = 0.01f;
+	return exposure;
 }

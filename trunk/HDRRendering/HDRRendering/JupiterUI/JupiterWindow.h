@@ -54,7 +54,7 @@ protected:
 	
 	static WindowMap s_WindowMap;
 	inline static CBaseWindow* FindWindow( HWND hWnd );
-	static CBaseWindow* s_CurrentWnd;
+	static CBaseWindow* s_CurrentWnd;	
 
 	friend LRESULT CALLBACK WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam );
 };
@@ -77,7 +77,8 @@ protected:
 
 
 protected:
-	GLWidget* _glWidgets[2];
+	static const int s_nWN = 6;
+	GLWidget* _glWidgets[s_nWN];
 	int _current;
 };
 

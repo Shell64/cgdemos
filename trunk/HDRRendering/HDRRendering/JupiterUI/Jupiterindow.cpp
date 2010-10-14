@@ -248,14 +248,22 @@ CBaseWindow* CBaseWindow::FindWindow( HWND hWnd )
 MainWindow::MainWindow( LPCTSTR lpszClassName, LPCTSTR lpszWindowName )
 :CBaseWindow( lpszClassName, lpszWindowName ), _current( 0 )
 {
-	RET( _glWidgets[0] = new SceneRender( _hWnd ) );
-	RET( _glWidgets[0]->Initialize() );
-
-	_glWidgets[0]->SetPosition( 10, 10, 600, 600 );
-
-	RET( _glWidgets[1] = new SceneRender( _hWnd ) );
-	RET( _glWidgets[1]->Initialize() );
-	_glWidgets[1]->SetPosition( 620, 10, 600, 600 );
+	int r = 0, c = 0, width = 512;
+	for ( int n = 0; n < s_nWN; ++n )
+	{
+		RET( _glWidgets[n] = new SHDRRender( _hWnd ) );
+		RET( _glWidgets[n]->Initialize() );
+		_glWidgets[n]->SetPosition( c, r, width, width );
+		if ( (n+1) % 3 )
+		{
+			c += width + 2;
+		}
+		else
+		{
+			r += width + 2;
+			c = 0;
+		}
+	}	
 }
 
 BOOL MainWindow::OnResize( WPARAM wParam, LPARAM lParam )
@@ -277,7 +285,7 @@ int MainWindow::Run( void )
 		else 
 		{
 			_glWidgets[_current]->OnPaint( NULL, NULL );
-			_current = ( _current + 1 ) % 2;
+			_current = ( _current + 1 ) % s_nWN;
 		}
 	}
 	return 0;
