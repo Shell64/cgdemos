@@ -30,6 +30,9 @@ LRESULT CALLBACK DisplayWidgetProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 	// Handle some specific messages:
 	switch( msg )
 	{
+	case WM_ERASEBKGND:
+		bMouseEntered = false;
+		break;
 	case WM_PAINT:
 		pDisplayWidget->Display();
 		//there're other operations need to be done by default
@@ -60,11 +63,12 @@ LRESULT CALLBACK DisplayWidgetProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 		return 0;
 
 	case WM_SIZE:	
-		pDisplayWidget->Reshape( LOWORD(lParam), HIWORD(lParam) );
+		if ( NULL != pDisplayWidget )
+			pDisplayWidget->Reshape( LOWORD(lParam), HIWORD(lParam) );
 		//if the following sentence is eliminated, there'll be no
 		//WM_PAINT received when shrink the size of the control,
 		//though it works normally when expand the size of the control
-		InvalidateRect( hWnd, NULL, TRUE );
+		//InvalidateRect( hWnd, NULL, TRUE );
 
 		return 0;
 	}
@@ -247,7 +251,7 @@ BOOL DisplayWidget::SetPosition(
 								const int x, const int y, 
 								const int width, const int height )
 {		
-	MoveWindow( m_hWnd, x, y, width, height, TRUE );
+	MoveWindow( m_hWnd, x, y, width, height, FALSE );
 	
 	return TRUE;
 }

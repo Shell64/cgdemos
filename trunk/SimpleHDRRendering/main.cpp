@@ -21,9 +21,10 @@
 
 //using namespace Gdiplus;
 HWND g_hToolbar = NULL;
-DisplayWidget* g_pDisplayWidget = NULL;
+int current = 0;
 HWND g_hMainWnd = NULL;
 HINSTANCE g_hInstance = NULL;
+DisplayWidget* g_widget[2];
 
 BOOL InitApplication( HINSTANCE hInstance );
 BOOL InitInstance( HINSTANCE hInstance, INT nShowCmd );
@@ -77,8 +78,9 @@ int WINAPI WinMain( HINSTANCE hInstance,
 		}
 		else 
 		{
-			if ( NULL != g_pDisplayWidget )
-				g_pDisplayWidget->Display();
+			if ( NULL != g_widget[current] )
+				g_widget[current]->Display();
+			current = ( current + 1 ) % 2;
 		}
 	}	
 
@@ -151,7 +153,7 @@ BOOL InitInstance( HINSTANCE hInstance, INT nShowCmd )
 
 void UpdateLayout( HWND hMainWnd )
 {
-	RECT MWndRect;	
+	/*RECT MWndRect;	
 	GetClientRect( hMainWnd, &MWndRect );
 
 	RECT DWRect;
@@ -161,7 +163,7 @@ void UpdateLayout( HWND hMainWnd )
 	DWRect.bottom = MWndRect.bottom;
 
 	g_pDisplayWidget->SetPosition( DWRect.left, DWRect.top, 
-		DWRect.right - DWRect.left, DWRect.bottom - DWRect.top );
+		DWRect.right - DWRect.left, DWRect.bottom - DWRect.top );*/
 }
 
 LRESULT CALLBACK ProcessCommand( WPARAM wParam )
@@ -202,26 +204,31 @@ LRESULT CALLBACK MainWndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam 
 	{
 
 	case WM_PAINT:
+		init = true;
 		break;
 
 	case WM_CREATE:	
-		g_pDisplayWidget = new SceneRender( hWnd );		
-		if ( NULL == g_pDisplayWidget ) 
+		g_widget[0] = new SceneRender( hWnd );		
+		g_widget[1] = new SceneRender( hWnd );
+		if ( NULL == g_widget[0] || NULL == g_widget[1] ) 
 		{
 			::PostMessage( hWnd, WM_CLOSE, 0, 0 );
 		}
 		else
 		{
-			g_pDisplayWidget->Initialize();
+			g_widget[0]->Initialize();
+			g_widget[0]->SetPosition( 10, 10, 600, 600 );
+			g_widget[1]->Initialize();
+			g_widget[1]->SetPosition( 620, 10, 600, 600 );
 		}
 		return 0;
 
 	case WM_KEYDOWN:
-		g_pDisplayWidget->KeyDownProc( wParam, lParam );
+		//g_pDisplayWidget->KeyDownProc( wParam, lParam );
 		return 0;
 
 	case WM_KEYUP:
-		g_pDisplayWidget->KeyUpProc( wParam, lParam );
+		//g_pDisplayWidget->KeyUpProc( wParam, lParam );
 		return 0;
 
 	case WM_DESTROY: 		
@@ -230,7 +237,7 @@ LRESULT CALLBACK MainWndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam 
 
 	case WM_SIZE:		
 		UpdateLayout( hWnd );
-		return 0;
+		break;
 
 	case WM_CLOSE:	
 		ShutDown();
@@ -251,11 +258,11 @@ LRESULT CALLBACK MainWndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam 
 
 void ShutDown( void )
 {	
-	if ( NULL != g_pDisplayWidget )
+	/*if ( NULL != g_pDisplayWidget )
 	{
 		delete g_pDisplayWidget;
 		g_pDisplayWidget = NULL;
-	}
+	}*/
 
 	DestroyWindow( g_hMainWnd );
 	g_hMainWnd = NULL;
