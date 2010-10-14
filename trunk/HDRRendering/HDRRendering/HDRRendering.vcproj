@@ -54,6 +54,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				ResourceOutputFileName="$(IntDir)/$(InputName).res"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -197,30 +198,42 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="GUI"
+			Name="JupiterUI"
 			>
 			<File
-				RelativePath=".\JupiterControls.cpp"
+				RelativePath=".\JupiterUI\JupiterControls.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\JupiterControls.h"
+				RelativePath=".\JupiterUI\JupiterControls.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Jupiterindow.cpp"
+				RelativePath=".\JupiterUI\Jupiterindow.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\JupiterWindow.h"
+				RelativePath=".\JupiterUI\JupiterWindow.h"
 				>
 			</File>
 			<File
-				RelativePath=".\resource.h"
+				RelativePath=".\JupiterUI\res.rc"
 				>
 			</File>
 			<File
-				RelativePath=".\theme.manifest"
+				RelativePath=".\JupiterUI\resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\JupiterUI\theme.manifest"
+				>
+			</File>
+			<File
+				RelativePath=".\JupiterUI\UIErrorUtil.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\JupiterUI\UIErrorUtil.h"
 				>
 			</File>
 		</Filter>
@@ -228,7 +241,91 @@
 			Name="OpenGL"
 			>
 			<File
-				RelativePath=".\OpenGL.h"
+				RelativePath=".\OpenGL\framebufferObject.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\OpenGL\framebufferObject.h"
+				>
+			</File>
+			<File
+				RelativePath=".\OpenGL\glErrorUtil.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\OpenGL\glErrorUtil.h"
+				>
+			</File>
+			<File
+				RelativePath=".\OpenGL\GlobalUtil.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\OpenGL\GlobalUtil.h"
+				>
+			</File>
+			<File
+				RelativePath=".\OpenGL\GLTexImage.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\OpenGL\GLTexImage.h"
+				>
+			</File>
+			<File
+				RelativePath=".\OpenGL\OpenGL.h"
+				>
+			</File>
+			<File
+				RelativePath=".\OpenGL\ProgramGLSL.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\OpenGL\ProgramGLSL.h"
+				>
+			</File>
+			<File
+				RelativePath=".\OpenGL\ShaderObject.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\OpenGL\ShaderObject.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="shaders"
+			>
+			<File
+				RelativePath=".\shaders\BX_FS.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\shaders\BX_VS.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\shaders\BY_FS.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\shaders\BY_VS.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\shaders\DS_FS.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\shaders\DS_VS.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\shaders\TM_FS.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\shaders\TM_VS.glsl"
 				>
 			</File>
 		</Filter>

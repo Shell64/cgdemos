@@ -100,60 +100,60 @@ Performance Notes:
 class FramebufferObject
 {
 public:
-  /// Ctor/Dtor
-  FramebufferObject();
-  virtual ~FramebufferObject();
+	/// Ctor/Dtor
+	FramebufferObject();
+	virtual ~FramebufferObject();
 
-  /// Bind this FBO as current render target
-  void Bind();
+	/// Bind this FBO as current render target
+	void Bind();
 
-  /// Bind a texture to the "attachment" point of this FBO
-  virtual void AttachTexture( GLenum texTarget, 
-                              GLuint texId,
-                              GLenum attachment = GL_COLOR_ATTACHMENT0_EXT,
-                              int mipLevel      = 0,
-                              int zSlice        = 0 );
+	/// Bind a texture to the "attachment" point of this FBO
+	virtual void AttachTexture( GLenum texTarget, 
+							  GLuint texId,
+							  GLenum attachment = GL_COLOR_ATTACHMENT0_EXT,
+							  int mipLevel      = 0,
+							  int zSlice        = 0 );
 
-  /// Bind an array of textures to multiple "attachment" points of this FBO
-  ///  - By default, the first 'numTextures' attachments are used,
-  ///    starting with GL_COLOR_ATTACHMENT0_EXT
-  virtual void AttachTextures( int numTextures, 
-                               GLenum texTarget[], 
-                               GLuint texId[],
-                               GLenum attachment[] = NULL,
-                               int mipLevel[]      = NULL,
-                               int zSlice[]        = NULL );
+	/// Bind an array of textures to multiple "attachment" points of this FBO
+	///  - By default, the first 'numTextures' attachments are used,
+	///    starting with GL_COLOR_ATTACHMENT0_EXT
+	virtual void AttachTextures( int numTextures, 
+							   GLenum texTarget[], 
+							   GLuint texId[],
+							   GLenum attachment[] = NULL,
+							   int mipLevel[]      = NULL,
+							   int zSlice[]        = NULL );
 
-  /// Bind a render buffer to the "attachment" point of this FBO
-  virtual void AttachRenderBuffer( GLuint buffId,
-                                   GLenum attachment = GL_COLOR_ATTACHMENT0_EXT );
+	/// Bind a render buffer to the "attachment" point of this FBO
+	virtual void AttachRenderBuffer( GLuint buffId,
+								   GLenum attachment = GL_COLOR_ATTACHMENT0_EXT );
 
-  /// Bind an array of render buffers to corresponding "attachment" points
-  /// of this FBO.
-  /// - By default, the first 'numBuffers' attachments are used,
-  ///   starting with GL_COLOR_ATTACHMENT0_EXT
-  virtual void AttachRenderBuffers( int numBuffers, GLuint buffId[],
-                                    GLenum attachment[] = NULL );
+	/// Bind an array of render buffers to corresponding "attachment" points
+	/// of this FBO.
+	/// - By default, the first 'numBuffers' attachments are used,
+	///   starting with GL_COLOR_ATTACHMENT0_EXT
+	virtual void AttachRenderBuffers( int numBuffers, GLuint buffId[],
+									GLenum attachment[] = NULL );
 
-  /// Free any resource bound to the "attachment" point of this FBO
-  void Unattach( GLenum attachment );
+	/// Free any resource bound to the "attachment" point of this FBO
+	void Unattach( GLenum attachment );
 
-  /// Free any resources bound to any attachment points of this FBO
-  void UnattachAll();
+	/// Free any resources bound to any attachment points of this FBO
+	void UnattachAll();
 
-  /// Is this FBO currently a valid render target?
-  ///  - Sends output to std::cerr by default but can
-  ///    be a user-defined C++ stream
-  ///
-  /// NOTE : This function works correctly in debug build
-  ///        mode but always returns "true" if NDEBUG is
-  ///        is defined (optimized builds)
+	/// Is this FBO currently a valid render target?
+	///  - Sends output to std::cerr by default but can
+	///    be a user-defined C++ stream
+	///
+	/// NOTE : This function works correctly in debug build
+	///        mode but always returns "true" if NDEBUG is
+	///        is defined (optimized builds)
 #ifndef NDEBUG
-  bool IsValid( std::ostream& ostr = std::cerr );
+	bool IsValid( std::ostream& ostr = std::cerr );
 #else
-  bool IsValid( std::ostream& ostr = std::cerr ) { 
-    return true; 
-  }
+	bool IsValid( std::ostream& ostr = std::cerr ) { 
+		return true; 
+	}
 #endif
 
   /// BEGIN : Accessors
@@ -192,15 +192,15 @@ public:
   /// END : Static methods global to all FBOs
 
 protected:
-  void  _GuardedBind();
-  void  _GuardedUnbind();
-  void  _FramebufferTextureND( GLenum attachment, GLenum texTarget, 
-                               GLuint texId, int mipLevel, int zSlice );
-  static GLuint _GenerateFboId();
+	void  _GuardedBind();
+	void  _GuardedUnbind();
+	void  _FramebufferTextureND( GLenum attachment, GLenum texTarget, 
+							   GLuint texId, int mipLevel, int zSlice );
+	static GLuint _GenerateFboId();
 
 private:
-  GLuint m_fboId;
-  GLint  m_savedFboId;
+	GLuint m_fboId;
+	GLint  m_savedFboId;
 };
 
 #endif

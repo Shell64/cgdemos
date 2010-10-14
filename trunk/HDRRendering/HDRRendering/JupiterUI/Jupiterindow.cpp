@@ -1,4 +1,5 @@
-#include "std.h"
+#include "../std.h"
+#include "../OpenGL/OpenGL.h"
 #include "JupiterWindow.h"
 #include "JupiterControls.h"
 
@@ -24,9 +25,12 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 	// Handle some specific messages:
 	switch( msg )
 	{
+	case WM_ERASEBKGND:
+		window = NULL;
+		break;
 	case WM_PAINT:
-		CHECK_WND( window );
-		C_BREAK_R( window->OnPaint( wParam, lParam ) );
+		CHECK_WND( window );		
+		C_BREAK_R( window->OnPaint( wParam, lParam ) );	
 
 	case WM_CREATE:	
 		CHECK_WND( CBaseWindow::s_CurrentWnd );
@@ -93,9 +97,9 @@ CBaseWindow::CBaseWindow(LPCSTR lpszClassName,
 						 LPCSTR lpszWindowName /*= NULL*/, 	
 						 DWORD dwStyle /*= WS_OVERLAPPEDWINDOW*/,
 						 HWND hParentWnd /*= NULL*/,
-						 HICON hIcon /*= NULL*/, 
-						 HCURSOR hCursor /*= NULL*/, 
 						 HBRUSH hBackground /*= NULL*/, 
+						 HICON hIcon /*= NULL*/, 
+						 HCURSOR hCursor /*= NULL*/, 						
 						 LPCSTR lpszMenuName /*= NULL */ )
 						 : _hInstance( NULL ),
 						 _hWnd( NULL )
@@ -112,16 +116,18 @@ CBaseWindow::CBaseWindow(LPCSTR lpszClassName,
 	wndClass.cbWndExtra = 0;
 	wndClass.hInstance = hInstance;
 	wndClass.hIcon = hIcon ;
-	wndClass.hCursor = hCursor == NULL ? LoadCursor( NULL, IDC_ARROW ) : hCursor;
-	wndClass.hbrBackground = hBackground == NULL ? (HBRUSH)( COLOR_WINDOW ) : hBackground ;
+	wndClass.hCursor = hCursor;
+	wndClass.hbrBackground = hBackground ;
 	wndClass.lpszMenuName = lpszMenuName;
 	wndClass.lpszClassName = lpszClassName;
 
 	if ( !RegisterClass( &wndClass ) ) 
-	{
-		DWORD errCode = GetLastError();
-		MessageBox( NULL, TEXT( "RegisterClass failed!" ), lpszClassName, MB_ICONERROR );
-		return;
+	{	
+		DWORD code = GetLastError();
+		if ( 1410 != code ) {
+			MessageBox( NULL, TEXT( "RegisterClass failed!" ), lpszClassName, MB_ICONERROR );
+			return;
+		}
 	}
 
 	//s_CurrentWnd is used only when creating the window
@@ -140,12 +146,6 @@ CBaseWindow::CBaseWindow(LPCSTR lpszClassName,
 	else {
 		s_WindowMap[ _hWnd ] = this;
 	}
-}
-
-CBaseWindow* CBaseWindow::FindWindow( HWND hWnd )
-{
-	WindowMap::iterator it = s_WindowMap.find( hWnd );
-	return s_WindowMap.end() == it ? NULL : it->second;
 }
 
 /************************************************************************
@@ -217,12 +217,12 @@ void CBaseWindow::Show( int nCmdShow )
 {
 	W_CHECK3;
 	::ShowWindow( _hWnd,  nCmdShow );
+	::UpdateWindow( _hWnd );
 }
 
 void CBaseWindow::Show( void )
 {
-	W_CHECK3;
-	::ShowWindow( _hWnd, SW_SHOW );
+	this->Show( SW_SHOW );	
 }
 
 void CBaseWindow::Hide( void )
@@ -231,27 +231,55 @@ void CBaseWindow::Hide( void )
 	::ShowWindow( _hWnd, SW_HIDE );
 }
 
+/************************************************************************
+ * the following are static members
+ ************************************************************************/
 CBaseWindow::WindowMap CBaseWindow::s_WindowMap;
 CBaseWindow* CBaseWindow::s_CurrentWnd = NULL;
+CBaseWindow* CBaseWindow::FindWindow( HWND hWnd )
+{
+	WindowMap::iterator it = s_WindowMap.find( hWnd );
+	return s_WindowMap.end() == it ? NULL : it->second;
+}
 
+/************************************************************************
+ * class MainWindow
+ ************************************************************************/
 MainWindow::MainWindow( LPCTSTR lpszClassName, LPCTSTR lpszWindowName )
-:CBaseWindow( lpszClassName, lpszWindowName ),
-_glWidget( NULL )
+:CBaseWindow( lpszClassName, lpszWindowName ), _current( 0 )
 {
-	RET( _glWidget = new GLWidget( _hWnd ) );
-	_glWidget->Initialize();
+	RET( _glWidgets[0] = new SceneRender( _hWnd ) );
+	RET( _glWidgets[0]->Initialize() );
 
-	_glWidget->SetPosition( 10, 10, 400, 200 );
+	_glWidgets[0]->SetPosition( 10, 10, 600, 600 );
+
+	RET( _glWidgets[1] = new SceneRender( _hWnd ) );
+	RET( _glWidgets[1]->Initialize() );
+	_glWidgets[1]->SetPosition( 620, 10, 600, 600 );
 }
-
-
-BOOL MainWindow::OnCreate( HWND hWnd, WPARAM wParam, LPARAM lParam )
-{
-	return TRUE;
-}
-
 
 BOOL MainWindow::OnResize( WPARAM wParam, LPARAM lParam )
 {
 	return TRUE;
 }
+
+int MainWindow::Run( void )
+{
+	this->Show();
+	MSG msg = { 0 };
+	while( msg.message != WM_QUIT )
+	{
+		if ( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) )
+		{
+			TranslateMessage( &msg );
+			DispatchMessage( &msg );
+		}
+		else 
+		{
+			_glWidgets[_current]->OnPaint( NULL, NULL );
+			_current = ( _current + 1 ) % 2;
+		}
+	}
+	return 0;
+}
+

@@ -32,6 +32,45 @@ protected:
 	HDC _hDC;
 };
 
+class SceneRender : public GLWidget
+{
+public:
+	SceneRender( HWND hParentWnd );
+
+	~SceneRender();
+
+	virtual BOOL Initialize();
+
+protected:
+	virtual BOOL OnResize( WPARAM wParam, LPARAM lParam );
+
+	virtual BOOL OnPaint( WPARAM wParam, LPARAM lParam );
+
+	BOOL InitTexture( void );
+
+	BOOL InitShaders( void );
+
+	BOOL InitRenderTagets( void );
+
+	void UpdateViewport();
+
+private:
+	GLuint m_TexID;
+	int m_nWidth;
+	int m_nHeight;
+	ProgramGLSL* m_pDownsampleProgram;
+	ProgramGLSL* m_pBlurXProgram;
+	ProgramGLSL* m_pBlurYProgram;
+	ProgramGLSL* m_pTonemapProgram;
+
+	GLTexInput* m_pHdrTex;
+	GLTexImage* m_pFullTex;
+	GLTexImage* m_pDSTex;
+	GLTexImage* m_pBlurXTex;
+	GLTexImage* m_pBlurYTex;
+	float* m_GK;
+};
+
 #else
 #error __JUPITER_CONTROLS_H__ already defined!
 #endif//__JUPITER_CONTROLS_H__
