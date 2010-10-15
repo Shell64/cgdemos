@@ -18,6 +18,11 @@ m_texID( 0 )
 
 GLTexImage::~GLTexImage(void)
 {
+	if ( m_texID > 0 )
+	{
+		glDeleteTextures( 1, &m_texID );
+		m_texID = 0;
+	}
 }
 
 void GLTexImage::BindTex()
@@ -92,7 +97,7 @@ void GLTexImage::InitTexture( int width, int height,
 	glTexParameteri( GlobalUtil::s_texTarget, GL_TEXTURE_MIN_FILTER, GL_NEAREST ); 
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-	glTexImage2D( GlobalUtil::s_texTarget, 0, format, m_texWidth, m_texHeight, 0, GL_RGBA, GL_FLOAT, NULL); 
+	glTexImage2D( GlobalUtil::s_texTarget, 0, format, m_texWidth, m_texHeight, 0, 0, 0, NULL); 
 
 	UnbindTex();
 }
@@ -206,9 +211,9 @@ bool GLTexInput::LoadImageFromFile( const char* filename,
 	}
 	int width = ilGetInteger( IL_IMAGE_WIDTH );
 	int height = ilGetInteger( IL_IMAGE_HEIGHT );	
-
 	int ilformat = ilGetInteger( IL_IMAGE_FORMAT );	
-	int bpp = ilGetInteger( IL_IMAGE_BITS_PER_PIXEL );
+	int type = ilGetInteger( IL_IMAGE_TYPE );	
+
 	bool ret = true;
 
 	if ( color || GL_LUMINANCE == ilformat )
@@ -216,7 +221,7 @@ bool GLTexInput::LoadImageFromFile( const char* filename,
 		GLuint iformat = GL_RGBA32F_ARB;
 		if ( GL_LUMINANCE == ilformat )
 			iformat = GL_LUMINANCE32F_ARB;
-		ret = SetImageData( width, height, ilGetData(), iformat, ilformat, GL_FLOAT );
+		ret = SetImageData( width, height, ilGetData(), iformat, ilformat, type );
 	}
 	else 
 	{

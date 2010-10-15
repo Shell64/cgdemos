@@ -14,8 +14,10 @@
 #include <assert.h>
 #include <exception>
 
-#include "il/il.h"
-#pragma comment(lib,"lib/devil.lib")
+#include "il.h"
+#include "ilu.h"
+#pragma comment(lib,"devil.lib")
+#pragma comment(lib, "ilu.lib")
 
 #define RET(b) \
 	if ( !(b) ) return;

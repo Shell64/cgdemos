@@ -265,6 +265,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\OpenGL\GLTexCube.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\OpenGL\GLTexCube.h"
+				>
+			</File>
+			<File
 				RelativePath=".\OpenGL\GLTexImage.cpp"
 				>
 			</File>
@@ -326,6 +334,50 @@
 			</File>
 			<File
 				RelativePath=".\shaders\TM_VS.glsl"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="3D"
+			>
+			<File
+				RelativePath=".\3D\Camera.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\3D\Camera.h"
+				>
+			</File>
+			<File
+				RelativePath=".\3D\Color.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\3D\Color.h"
+				>
+			</File>
+			<File
+				RelativePath=".\3D\Math.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\3D\Math.h"
+				>
+			</File>
+			<File
+				RelativePath=".\3D\Matrix4.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\3D\Matrix4.h"
+				>
+			</File>
+			<File
+				RelativePath=".\3D\Vector3.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\3D\Vector3.h"
 				>
 			</File>
 		</Filter>
