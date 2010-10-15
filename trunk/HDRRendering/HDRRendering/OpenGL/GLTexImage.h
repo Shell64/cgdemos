@@ -8,7 +8,7 @@ class GLTexImage
 public:
 	GLTexImage(void);
 
-	~GLTexImage(void);
+	virtual ~GLTexImage(void);
 
 	void BindTex();
 

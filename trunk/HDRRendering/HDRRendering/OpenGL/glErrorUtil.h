@@ -42,6 +42,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <strstream>
 
 // A simple OpenGL error checking routine. This compiles away
 // to a no-op inline method if the NDEBUG preprocessor symbol
@@ -86,12 +87,12 @@ void LogError( const std::string& err_info,
 
 #else
 inline void CheckErrorsGL( const char* location = NULL, 
-			                     std::ostream& ostr = std::cerr ) 
+						  std::ostream& ostr = LogStream::LS() ) 
 {}
 
 inline void LogError( const std::string& err_info,
 					 const std::string& location = std::string(),
-					 std::ostream& ostr = std::cerr )
+					 std::ostream& ostr = LogStream::LS() )
 {
 
 }

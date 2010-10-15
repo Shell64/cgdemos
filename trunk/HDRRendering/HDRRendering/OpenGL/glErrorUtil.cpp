@@ -66,8 +66,8 @@ void CheckErrorsGL(const char* location, ostream& ostr)
 }
 
 void LogError( const std::string& err_info, 
-			  const std::string& location /*= std::string()*/,
-			  std::ostream& ostr /*= std::cerr */ )
+			  const std::string& location,
+			  std::ostream& ostr )
 {
 	ostr << err_info << " at" << location << endl;	
 }
