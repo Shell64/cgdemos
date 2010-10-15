@@ -72,13 +72,12 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 		CHECK_WND( window );
 		C_BREAK_R( window->OnCommand( wParam, lParam ) );		
 
-	case WM_DESTROY: 		
-		::PostQuitMessage(0); 
-		return 0;	
+	case WM_DESTROY:		
+		break;	
 
-	case WM_CLOSE:		
-		SAFE_RELEASE( window );
-		break;
+	case WM_CLOSE:
+		::PostQuitMessage(0); 
+		return 0;
 
 	default:
 		break;
@@ -88,9 +87,10 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 }
 
 CBaseWindow::~CBaseWindow(void)
-{
-	DestroyWindow( _hWnd );
+{	
 	s_WindowMap.erase( _hWnd );
+	DestroyWindow( _hWnd );
+	_hWnd = NULL;
 }
 
 CBaseWindow::CBaseWindow(LPCSTR lpszClassName, 
@@ -236,6 +236,7 @@ void CBaseWindow::Hide( void )
  ************************************************************************/
 CBaseWindow::WindowMap CBaseWindow::s_WindowMap;
 CBaseWindow* CBaseWindow::s_CurrentWnd = NULL;
+
 CBaseWindow* CBaseWindow::FindWindow( HWND hWnd )
 {
 	WindowMap::iterator it = s_WindowMap.find( hWnd );
@@ -248,10 +249,13 @@ CBaseWindow* CBaseWindow::FindWindow( HWND hWnd )
 MainWindow::MainWindow( LPCTSTR lpszClassName, LPCTSTR lpszWindowName )
 :CBaseWindow( lpszClassName, lpszWindowName ), _current( 0 )
 {
-	int r = 0, c = 0, width = 512;
+	for ( int n = 0; n < s_nWN; ++n )
+		_glWidgets[ n ] = NULL;
+
+	int r = 0, c = 0, width = 200;
 	for ( int n = 0; n < s_nWN; ++n )
 	{
-		RET( _glWidgets[n] = new SHDRRender( _hWnd ) );
+		RET( _glWidgets[n] = new GLWidget( _hWnd ) );
 		RET( _glWidgets[n]->Initialize() );
 		_glWidgets[n]->SetPosition( c, r, width, width );
 		if ( (n+1) % 3 )
@@ -264,6 +268,14 @@ MainWindow::MainWindow( LPCTSTR lpszClassName, LPCTSTR lpszWindowName )
 			c = 0;
 		}
 	}	
+}
+
+MainWindow::~MainWindow( void )
+{
+	for ( int n = 0; n < s_nWN; ++n )
+	{
+		SAFE_RELEASE( _glWidgets[ n ] );
+	}
 }
 
 BOOL MainWindow::OnResize( WPARAM wParam, LPARAM lParam )
@@ -284,8 +296,11 @@ int MainWindow::Run( void )
 		}
 		else 
 		{
-			_glWidgets[_current]->OnPaint( NULL, NULL );
-			_current = ( _current + 1 ) % s_nWN;
+			if ( NULL != _glWidgets[ _current ] )
+			{
+				_glWidgets[_current]->OnPaint( NULL, NULL );
+				_current = ( _current + 1 ) % s_nWN;
+			}
 		}
 	}
 	return 0;

@@ -1,6 +1,8 @@
 #ifndef __JUPITER_WINDOW_H__
 #define __JUPITER_WINDOW_H__
 
+#include "../Win32.h"
+
 class CBaseWindow
 {
 public:
@@ -47,6 +49,9 @@ protected:
 
 	virtual BOOL OnCommand( WPARAM wParam, LPARAM lParam );
 
+private:
+	CBaseWindow( const CBaseWindow& window ) { }
+
 protected:
 	typedef std::map< HWND, CBaseWindow* > WindowMap;
 	HWND _hWnd;
@@ -68,7 +73,7 @@ public:
 	MainWindow( LPCTSTR lpszClassName,
 		LPCTSTR lpszWindowName );
 
-	virtual ~MainWindow( void ) { }
+	virtual ~MainWindow( void );
 
 	virtual int Run( void );
 

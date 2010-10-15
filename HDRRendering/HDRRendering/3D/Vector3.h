@@ -1,8 +1,10 @@
 #ifndef __VECTOR3_H__
 #define __VECTOR3_H__
 
-#include "std.h"
+#include "../std.h"
 #include "Math.h"
+
+class Matrix4;
 
 class Vector3
 {

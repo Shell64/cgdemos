@@ -31,9 +31,12 @@ protected:
 
 	void RestoreMVPMatrices( void );
 
+	BOOL BasicInitialize( void );
+
 protected:
 	HGLRC _hGLRC;
 	HDC _hDC;
+	bool _bInitialized;
 
 	static GLdouble s_ModelView[16];
 	static GLdouble s_Projection[16];
@@ -72,7 +75,7 @@ private:
 	GLTexImage* m_pDSTex;
 	GLTexImage* m_pBlurXTex;
 	GLTexImage* m_pBlurYTex;
-	float* m_GK;
+	float* m_GK;	
 };
 
 #else

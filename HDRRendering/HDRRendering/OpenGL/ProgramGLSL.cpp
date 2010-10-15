@@ -27,8 +27,7 @@ bool ProgramGLSL::UseProgram()
 	}
 	else
 	{
-		CheckErrorsGL( this->m_tag.c_str(), LogStream::LS() );
-		//std::cout << "invalid program: " << this->m_tag << std::endl;
+		CheckErrorsGL( this->m_tag.c_str(), LogStream::LS() );		
 		return false;
 	}
 }
