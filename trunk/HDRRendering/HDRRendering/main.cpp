@@ -12,7 +12,6 @@ int WINAPI WinMain( HINSTANCE hInstance,
 				   LPSTR lpCmdLine,
 				   int nShowCmd )
 {		
-	CBaseWindow* pWindow = new MainWindow( APP_CLASS_NMAE, APP_WINDOW_NAME );	
-	GLTexCubeInput cubeInput( "beach_cross.hdr" );
-	return dynamic_cast<MainWindow*>( pWindow )->Run();
+	MainWindow Window( APP_CLASS_NMAE, APP_WINDOW_NAME );	
+	return Window.Run();		
 }

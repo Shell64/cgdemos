@@ -54,22 +54,22 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-ZOOM                    ICON                    "images\\zoom.ico"
-UNDO                    ICON                    "images\\undo.ico"
-SAVE                    ICON                    "images\\save.ico"
-REDO                    ICON                    "images\\redo.ico"
-OPEN                    ICON                    "images\\open.ico"
-FLOWER                  ICON                    "images\\jupiter_app.ico"
-BRUSH                   ICON                    "images\\paint_app.ico"
-BLACKLEAF               ICON                    "images\\0.ico"
-HAND                    ICON                    "images\\hand2.ico"
+//ZOOM                    ICON                    "images\\zoom.ico"
+//UNDO                    ICON                    "images\\undo.ico"
+//SAVE                    ICON                    "images\\save.ico"
+//REDO                    ICON                    "images\\redo.ico"
+//OPEN                    ICON                    "images\\open.ico"
+//FLOWER                  ICON                    "images\\jupiter_app.ico"
+//BRUSH                   ICON                    "images\\paint_app.ico"
+//BLACKLEAF               ICON                    "images\\0.ico"
+//HAND                    ICON                    "images\\hand2.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // PNG
 //
 
-BLACKLEAF               PNG                     "images\\jupiter.png"
+//BLACKLEAF               PNG                     "images\\jupiter.png"
 
 /////////////////////////////////////////////////////////////////////////////
 //

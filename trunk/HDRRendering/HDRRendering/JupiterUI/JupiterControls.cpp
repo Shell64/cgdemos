@@ -1,4 +1,5 @@
 #include "../std.h"
+#include "../Win32.h"
 #include "../OpenGL/OpenGL.h"
 #include "../Gaussian.h"
 
@@ -12,7 +13,7 @@
 
 BOOL GLWidget::InitGL( void )
 {
-	F_RET( _hWnd );
+	V_RET( _hWnd );
 
 	_hDC = GetDC( _hWnd );
 	if ( NULL == _hDC )
@@ -20,7 +21,7 @@ BOOL GLWidget::InitGL( void )
 		MessageBox( NULL, TEXT( "Create GL device context failed"), GL_WIDGET, MB_OK );
 		return FALSE;
 	}
-
+	
 	if ( !this->SetPixelFormat() )
 		return FALSE;
 
@@ -30,7 +31,7 @@ BOOL GLWidget::InitGL( void )
 		MessageBox( NULL, TEXT( "Can't create a GL rendering context" ), GL_WIDGET, MB_OK );
 		return FALSE;
 	}
-
+	
 	return TRUE;
 }
 
@@ -77,34 +78,35 @@ BOOL GLWidget::MakeCurrent( void )
 //must set window background as NULL, otherwise the rendered
 //scene may be erased with background color
 GLWidget::GLWidget( HWND hParentWnd )
-:CBaseWindow( GL_WIDGET, NULL, WS_VISIBLE|WS_CHILD, hParentWnd, NULL )
+:CBaseWindow( GL_WIDGET, NULL, WS_VISIBLE|WS_CHILD, hParentWnd, NULL ), 
+_bInitialized( false ), _hGLRC( NULL ), _hDC( NULL )
 {
 	InitGL();
 }
 
 GLWidget::~GLWidget( void )
-{
+{	
 	if ( NULL != _hGLRC )
 	{
 		if ( !wglDeleteContext( _hGLRC ) )
 		{
-			MessageBox(NULL, "Release RC Failed.", "SHUTDOWN ERROR", MB_OK);
+			MessageBox( NULL, "Release RC Failed.", "SHUTDOWN ERROR", MB_OK );
 		}
 		_hGLRC = NULL;
 	}
+	wglMakeCurrent( NULL, NULL );
 
 	if ( NULL != _hDC && !ReleaseDC( _hWnd, _hDC ) )
 	{
-		MessageBox(NULL,"Release DC Failed.","SHUTDOWN ERROR",MB_OK);
+		DWORD err = GetLastError();
+		MessageBox( NULL, "Release DC Failed.", "SHUTDOWN ERROR", MB_OK );
 		_hDC = NULL;
-	}	
-
-	wglMakeCurrent( NULL, NULL );
+	}		
 }
 
 BOOL GLWidget::OnResize( WPARAM wParam, LPARAM lParam )
 {
-	F_RET( this->MakeCurrent() );
+	V_RET( this->MakeCurrent() );
 
 	int width = LOWORD(lParam);
 	int height = HIWORD(lParam);
@@ -127,10 +129,11 @@ BOOL GLWidget::OnResize( WPARAM wParam, LPARAM lParam )
 
 BOOL GLWidget::OnPaint( WPARAM wParam, LPARAM lParam )
 {
-	F_RET( this->MakeCurrent() );
+	V_RET( this->MakeCurrent() );
 	glClear( GL_COLOR_BUFFER_BIT );
 
 	SwapBuffers( _hDC );
+	
 	return FALSE;
 }
 
@@ -139,13 +142,22 @@ void GLWidget::SetPosition( int x, int y, int width, int height )
 	::MoveWindow( _hWnd, x, y, width, height, FALSE );
 }
 
-BOOL GLWidget::Initialize( void )
+BOOL GLWidget::BasicInitialize( void )
 {
-	F_RET( this->MakeCurrent() );
+	V_RET( this->MakeCurrent() );
 
 	float color = 160.f / 255.f;
 
 	glClearColor( color, color, color, color );	
+
+	return TRUE;
+}
+
+BOOL GLWidget::Initialize( void )
+{
+	V_RET( this->BasicInitialize() );
+
+	_bInitialized = true;
 
 	return TRUE;
 }
@@ -177,7 +189,7 @@ GLdouble GLWidget::s_ModelView[16];
 
 
 BOOL SHDRRender::OnResize( WPARAM wParam, LPARAM lParam )
-{	
+{		
 	int width = LOWORD(lParam);
 	int height = HIWORD(lParam);
 	
@@ -199,7 +211,8 @@ BOOL SHDRRender::OnResize( WPARAM wParam, LPARAM lParam )
 
 BOOL SHDRRender::OnPaint( WPARAM wParam, LPARAM lParam )
 {
-	F_RET( this->MakeCurrent() );
+	V_RET( _bInitialized );
+	V_RET( this->MakeCurrent() );
 	glClear( GL_COLOR_BUFFER_BIT );
 
 	glEnable(GL_TEXTURE_2D); /* enable texture mapping */	
@@ -291,7 +304,7 @@ BOOL SHDRRender::OnPaint( WPARAM wParam, LPARAM lParam )
 
 BOOL SHDRRender::Initialize()
 {
-	F_RET( GLWidget::Initialize() );
+	V_RET( this->BasicInitialize() );
 
 	glewInit();
 	V_RET( this->InitTexture() );
@@ -300,6 +313,7 @@ BOOL SHDRRender::Initialize()
 
 	V_RET( m_GK = gaussian1D<float>( 4, 1 ) );
 
+	_bInitialized = true;
 	return TRUE;
 }
 
@@ -353,7 +367,16 @@ BOOL SHDRRender::InitTexture( void )
 }
 
 SHDRRender::SHDRRender( HWND hParentWnd )
-:GLWidget( hParentWnd )
+:GLWidget( hParentWnd ),
+m_pDownsampleProgram( NULL ),
+m_pBlurXProgram( NULL ),
+m_pBlurYProgram( NULL ),
+m_pTonemapProgram( NULL ),
+m_pHdrTex( NULL ),
+m_pDSTex( NULL ),
+m_pBlurXTex( NULL ),
+m_pBlurYTex( NULL ),
+m_GK( NULL )
 {
 
 }
