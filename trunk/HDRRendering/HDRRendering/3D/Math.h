@@ -29,6 +29,9 @@ public:
 	static const float PI;
 	static const float PI_DIV_2;
 	static const float PI_DIV_4;
+	static const float _2PI;
+	static const float RAD_P_DEG;
+	static const float DEG_P_RAD;
 };
 
 
@@ -64,12 +67,12 @@ inline float Math::atan(float rad)
 
 inline float Math::rad2deg(float rad)
 {
-	return rad * 180.0f / PI;
+	return rad * Math::DEG_P_RAD;
 }
 
 inline float Math::deg2rad(float deg)
 {
-	return deg * PI / 180.0f;
+	return deg * Math::RAD_P_DEG;
 }
 
 inline float Math::exp(float t)
