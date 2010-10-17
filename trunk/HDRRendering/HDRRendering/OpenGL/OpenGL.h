@@ -6,6 +6,7 @@
 #include "ShaderObject.h"
 #include "ProgramGLSL.h"
 #include "GLTexImage.h"
+#include "GLTexCube.h"
 #include "FramebufferObject.h"
 
 #else

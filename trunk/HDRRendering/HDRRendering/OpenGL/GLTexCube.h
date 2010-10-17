@@ -46,6 +46,4 @@ protected:
 	ILenum GetDataType( ILint format, ILint bpp );
 };
 
-#else
-#error __GL_TEX_CUBE_H__ already defined!
 #endif//__GL_TEX_CUBE_H__

@@ -11,7 +11,7 @@
 #include "JupiterWindow.h"
 #include "JupiterControls.h"
 
-BOOL GLWidget::InitGL( void )
+bool GLWidget::InitGL( void )
 {
 	V_RET( _hWnd );
 
@@ -19,23 +19,23 @@ BOOL GLWidget::InitGL( void )
 	if ( NULL == _hDC )
 	{
 		MessageBox( NULL, TEXT( "Create GL device context failed"), GL_WIDGET, MB_OK );
-		return FALSE;
+		return false;
 	}
 	
 	if ( !this->SetPixelFormat() )
-		return FALSE;
+		return false;
 
 	_hGLRC = wglCreateContext( _hDC );
 	if ( NULL == _hGLRC )
 	{
 		MessageBox( NULL, TEXT( "Can't create a GL rendering context" ), GL_WIDGET, MB_OK );
-		return FALSE;
+		return false;
 	}
 	
-	return TRUE;
+	return true;
 }
 
-BOOL GLWidget::SetPixelFormat( void )
+bool GLWidget::SetPixelFormat( void )
 {
 	PIXELFORMATDESCRIPTOR pfd;
 	memset( &pfd, 0, sizeof( pfd ) );
@@ -50,29 +50,29 @@ BOOL GLWidget::SetPixelFormat( void )
 	if ( NULL == pixelformat ) 
 	{
 		MessageBox( NULL, TEXT( "Can't find a suitable pixelformat" ), GL_WIDGET, MB_OK );
-		return FALSE;
+		return false;
 	}
 
 	if ( !::SetPixelFormat( _hDC, pixelformat, &pfd ) )
 	{
 		MessageBox( NULL, TEXT( "Can't set the pixelformat" ), GL_WIDGET, MB_OK );
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
-BOOL GLWidget::MakeCurrent( void )
+bool GLWidget::MakeCurrent( void )
 {
 	T_RET( this->IsCurrent() );		
 
 	if ( !wglMakeCurrent( _hDC, _hGLRC ) )
 	{
 		MessageBox( NULL, TEXT( "Can't activate the GL rendering context" ), GL_WIDGET, MB_OK );
-		return FALSE;
+		return false;
 	}	
 
-	return TRUE;
+	return true;
 }
 
 //must set window background as NULL, otherwise the rendered
@@ -104,7 +104,7 @@ GLWidget::~GLWidget( void )
 	}		
 }
 
-BOOL GLWidget::OnResize( WPARAM wParam, LPARAM lParam )
+bool GLWidget::OnResize( WPARAM wParam, LPARAM lParam )
 {
 	V_RET( this->MakeCurrent() );
 
@@ -124,25 +124,25 @@ BOOL GLWidget::OnResize( WPARAM wParam, LPARAM lParam )
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();	
 	
-	return FALSE;
+	return false;
 }
 
-BOOL GLWidget::OnPaint( WPARAM wParam, LPARAM lParam )
+bool GLWidget::OnPaint( WPARAM wParam, LPARAM lParam )
 {
 	V_RET( this->MakeCurrent() );
 	glClear( GL_COLOR_BUFFER_BIT );
 
 	SwapBuffers( _hDC );
 	
-	return FALSE;
+	return false;
 }
 
 void GLWidget::SetPosition( int x, int y, int width, int height )
 {
-	::MoveWindow( _hWnd, x, y, width, height, FALSE );
+	::MoveWindow( _hWnd, x, y, width, height, false );
 }
 
-BOOL GLWidget::BasicInitialize( void )
+bool GLWidget::BasicInitialize( void )
 {
 	V_RET( this->MakeCurrent() );
 
@@ -150,16 +150,16 @@ BOOL GLWidget::BasicInitialize( void )
 
 	glClearColor( color, color, color, color );	
 
-	return TRUE;
+	return true;
 }
 
-BOOL GLWidget::Initialize( void )
+bool GLWidget::Initialize( void )
 {
 	V_RET( this->BasicInitialize() );
 
 	_bInitialized = true;
 
-	return TRUE;
+	return true;
 }
 
 void GLWidget::SaveMVPMatrices( void )
@@ -188,7 +188,7 @@ GLdouble GLWidget::s_Projection[16];
 GLdouble GLWidget::s_ModelView[16];
 
 
-BOOL SHDRRender::OnResize( WPARAM wParam, LPARAM lParam )
+bool SHDRRender::OnResize( WPARAM wParam, LPARAM lParam )
 {		
 	int width = LOWORD(lParam);
 	int height = HIWORD(lParam);
@@ -206,10 +206,10 @@ BOOL SHDRRender::OnResize( WPARAM wParam, LPARAM lParam )
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();	
 
-	return FALSE;
+	return false;
 }
 
-BOOL SHDRRender::OnPaint( WPARAM wParam, LPARAM lParam )
+bool SHDRRender::OnPaint( WPARAM wParam, LPARAM lParam )
 {
 	V_RET( _bInitialized );
 	V_RET( this->MakeCurrent() );
@@ -299,10 +299,10 @@ BOOL SHDRRender::OnPaint( WPARAM wParam, LPARAM lParam )
 
 	SwapBuffers( _hDC );
 
-	return TRUE;
+	return true;
 }
 
-BOOL SHDRRender::Initialize()
+bool SHDRRender::Initialize()
 {
 	V_RET( this->BasicInitialize() );
 
@@ -314,10 +314,10 @@ BOOL SHDRRender::Initialize()
 	V_RET( m_GK = gaussian1D<float>( 4, 1 ) );
 
 	_bInitialized = true;
-	return TRUE;
+	return true;
 }
 
-BOOL SHDRRender::InitShaders( void )
+bool SHDRRender::InitShaders( void )
 {
 	V_RET( this->m_pDownsampleProgram = new ProgramGLSL( "down sample" ) );	
 	this->m_pDownsampleProgram->AttachShaderObject(
@@ -339,10 +339,10 @@ BOOL SHDRRender::InitShaders( void )
 		ShaderObject( GL_FRAGMENT_SHADER, "shaders/TM_FS.glsl", true ) );
 	V_RET( this->m_pTonemapProgram->LinkProgram() );
 
-	return TRUE;
+	return true;
 }
 
-BOOL SHDRRender::InitRenderTagets( void )
+bool SHDRRender::InitRenderTagets( void )
 {	
 	int width = m_pHdrTex->GetTexWidth();
 	int height = m_pHdrTex->GetTexHeight();
@@ -355,15 +355,15 @@ BOOL SHDRRender::InitRenderTagets( void )
 
 	V_RET( m_pBlurYTex = new GLTexImage() );	
 	this->m_pBlurYTex->InitTexture( width / 2, height / 2 );
-	return TRUE;
+	return true;
 }
 
-BOOL SHDRRender::InitTexture( void )
+bool SHDRRender::InitTexture( void )
 {
 	V_RET( m_pHdrTex = new GLTexInput() );
 	V_RET( m_pHdrTex->LoadImageFromFile( "RNL.hdr" ) );
 
-	return TRUE;
+	return true;
 }
 
 SHDRRender::SHDRRender( HWND hParentWnd )

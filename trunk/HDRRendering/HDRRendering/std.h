@@ -5,6 +5,7 @@
 #include <map>
 #include <assert.h>
 #include <exception>
+#include <cmath>
 
 #include "IL/il.h"
 #include "IL/ilu.h"

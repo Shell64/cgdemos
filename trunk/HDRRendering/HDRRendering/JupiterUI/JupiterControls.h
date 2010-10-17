@@ -10,28 +10,28 @@ public:
 
 	virtual ~GLWidget( void );
 
-	virtual BOOL OnResize( WPARAM wParam, LPARAM lParam );
+	virtual bool OnResize( WPARAM wParam, LPARAM lParam );
 
-	virtual BOOL OnPaint( WPARAM wParam, LPARAM lParam );
+	virtual bool OnPaint( WPARAM wParam, LPARAM lParam );
 
 	virtual void SetPosition( int x, int y, int width, int height );
 
-	virtual BOOL Initialize( void );
+	virtual bool Initialize( void );
 
 protected:	
-	BOOL InitGL( void );
+	bool InitGL( void );
 
-	BOOL SetPixelFormat( void );	
+	bool SetPixelFormat( void );	
 
-	inline BOOL IsCurrent( void ) { return _hGLRC == wglGetCurrentContext() && _hGLRC != NULL; }
+	inline bool IsCurrent( void ) { return _hGLRC == wglGetCurrentContext() && _hGLRC != NULL; }
 
-	BOOL MakeCurrent( void );
+	bool MakeCurrent( void );
 
 	void SaveMVPMatrices( void );
 
 	void RestoreMVPMatrices( void );
 
-	BOOL BasicInitialize( void );
+	bool BasicInitialize( void );
 
 protected:
 	HGLRC _hGLRC;
@@ -50,18 +50,18 @@ public:
 
 	~SHDRRender();
 
-	virtual BOOL Initialize();
+	virtual bool Initialize();
 
 protected:
-	virtual BOOL OnResize( WPARAM wParam, LPARAM lParam );
+	virtual bool OnResize( WPARAM wParam, LPARAM lParam );
 
-	virtual BOOL OnPaint( WPARAM wParam, LPARAM lParam );
+	virtual bool OnPaint( WPARAM wParam, LPARAM lParam );
 
-	BOOL InitTexture( void );
+	bool InitTexture( void );
 
-	BOOL InitShaders( void );
+	bool InitShaders( void );
 
-	BOOL InitRenderTagets( void );
+	bool InitRenderTagets( void );
 
 	float GetExposure( void );
 
