@@ -252,10 +252,10 @@ MainWindow::MainWindow( LPCTSTR lpszClassName, LPCTSTR lpszWindowName )
 	for ( int n = 0; n < s_nWN; ++n )
 		_glWidgets[ n ] = NULL;
 
-	int r = 0, c = 0, width = 200;
+	int r = 0, c = 0, width = 512;
 	for ( int n = 0; n < s_nWN; ++n )
 	{
-		RET( _glWidgets[n] = new GLWidget( _hWnd ) );
+		RET( _glWidgets[n] = new SHDRRender( _hWnd ) );
 		RET( _glWidgets[n]->Initialize() );
 		_glWidgets[n]->SetPosition( c, r, width, width );
 		if ( (n+1) % 3 )
