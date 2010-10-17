@@ -183,6 +183,10 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\3D\3d.h"
+				>
+			</File>
+			<File
 				RelativePath=".\std.h"
 				>
 			</File>
@@ -201,6 +205,14 @@
 			Name="JupiterUI"
 			>
 			<File
+				RelativePath=".\JupiterUI\HDRRender.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\JupiterUI\HDRRender.h"
+				>
+			</File>
+			<File
 				RelativePath=".\JupiterUI\JupiterControls.cpp"
 				>
 			</File>
@@ -210,6 +222,10 @@
 			</File>
 			<File
 				RelativePath=".\JupiterUI\Jupiterindow.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\JupiterUI\JupiterUI.h"
 				>
 			</File>
 			<File

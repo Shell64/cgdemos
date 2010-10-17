@@ -1,15 +1,15 @@
 #include "../std.h"
+#include "../3D/3d.h"
 #include "../OpenGL/OpenGL.h"
-#include "JupiterWindow.h"
-#include "JupiterControls.h"
+#include "JupiterUI.h"
 
 #define WND_HANDLE _hWnd
 
 #define W_CHECK1 \
-	if ( NULL == WND_HANDLE ) return TRUE;
+	if ( NULL == WND_HANDLE ) return true;
 
 #define W_CHECK2 \
-	if ( NULL == WND_HANDLE ) return FALSE;
+	if ( NULL == WND_HANDLE ) return false;
 
 #define W_CHECK3 \
 	if ( NULL == WND_HANDLE ) return;
@@ -66,7 +66,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 
 	case WM_SIZE:	
 		CHECK_WND( window );
-		C_BREAK_R( window->OnResize( wParam, lParam ) );	
+		C_BREAK_R( window->OnResize( wParam, lParam ) );
 
 	case  WM_COMMAND:	
 		CHECK_WND( window );
@@ -153,64 +153,64 @@ CBaseWindow::CBaseWindow(LPCSTR lpszClassName,
  * return value: TRUE if need further process, otherwise FALSE
  * parameters: Windows message parameters
  ************************************************************************/
-BOOL CBaseWindow::OnLButtonDown( WPARAM wParam, LPARAM lParam )
+bool CBaseWindow::OnLButtonDown( WPARAM wParam, LPARAM lParam )
 {
-	return TRUE;
+	return true;
 }
 
-BOOL CBaseWindow::OnLButtonUp( WPARAM wParam, LPARAM lParam )
+bool CBaseWindow::OnLButtonUp( WPARAM wParam, LPARAM lParam )
 {
-	return TRUE;
+	return true;
 }
 
-BOOL CBaseWindow::OnRButtonDown( WPARAM wParam, LPARAM lParam )
+bool CBaseWindow::OnRButtonDown( WPARAM wParam, LPARAM lParam )
 {
-	return TRUE;
+	return true;
 }
 
-BOOL CBaseWindow::OnRButtonUp( WPARAM wParam, LPARAM lParam )
+bool CBaseWindow::OnRButtonUp( WPARAM wParam, LPARAM lParam )
 {
-	return TRUE;
+	return true;
 }
 
-BOOL CBaseWindow::OnMouseMove( WPARAM wParam, LPARAM lParam )
+bool CBaseWindow::OnMouseMove( WPARAM wParam, LPARAM lParam )
 {
-	return TRUE;
+	return true;
 }
 
-BOOL CBaseWindow::OnMouseLeave( WPARAM wParam, LPARAM lParam )
+bool CBaseWindow::OnMouseLeave( WPARAM wParam, LPARAM lParam )
 {
-	return TRUE;
+	return true;
 }
 
-BOOL CBaseWindow::OnKeyDown( WPARAM wParam, LPARAM lParam )
+bool CBaseWindow::OnKeyDown( WPARAM wParam, LPARAM lParam )
 {
-	return TRUE;
+	return true;
 }
 
-BOOL CBaseWindow::OnKeyUp( WPARAM wParam, LPARAM lParam )
+bool CBaseWindow::OnKeyUp( WPARAM wParam, LPARAM lParam )
 {
-	return TRUE;
+	return true;
 }
 
-BOOL CBaseWindow::OnResize( WPARAM wParam, LPARAM lParam )
+bool CBaseWindow::OnResize( WPARAM wParam, LPARAM lParam )
 {	
-	return TRUE;
+	return true;
 }
 
-BOOL CBaseWindow::OnPaint( WPARAM wParam, LPARAM lParam )
+bool CBaseWindow::OnPaint( WPARAM wParam, LPARAM lParam )
 {
-	return TRUE;
+	return true;
 }
 
-BOOL CBaseWindow::OnCreate( HWND hWnd, WPARAM wParam, LPARAM lParam )
+bool CBaseWindow::OnCreate( HWND hWnd, WPARAM wParam, LPARAM lParam )
 {
-	return TRUE;
+	return true;
 }
 
-BOOL CBaseWindow::OnCommand( WPARAM wParam, LPARAM lParam )
+bool CBaseWindow::OnCommand( WPARAM wParam, LPARAM lParam )
 {
-	return TRUE;
+	return true;
 }
 
 void CBaseWindow::Show( int nCmdShow )
@@ -278,9 +278,9 @@ MainWindow::~MainWindow( void )
 	}
 }
 
-BOOL MainWindow::OnResize( WPARAM wParam, LPARAM lParam )
+bool MainWindow::OnResize( WPARAM wParam, LPARAM lParam )
 {
-	return TRUE;
+	return true;
 }
 
 int MainWindow::Run( void )
@@ -306,3 +306,40 @@ int MainWindow::Run( void )
 	return 0;
 }
 
+HDRDemoWindow::HDRDemoWindow( LPCSTR lpszClassName, LPCTSTR lpszWindowName )
+:CBaseWindow( lpszClassName, lpszWindowName ), _pWidget( NULL )
+{
+	RET( _pWidget = new HDRRender( _hWnd ) );
+	RET( _pWidget->Initialize() );
+	_pWidget->SetPosition( 0, 0, 800, 600 );
+}
+
+HDRDemoWindow::~HDRDemoWindow()
+{
+	SAFE_RELEASE( _pWidget );
+}
+
+int HDRDemoWindow::Run()
+{
+	this->Show();
+	MSG msg = { 0 };
+	while( msg.message != WM_QUIT )
+	{
+		if ( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) )
+		{
+			TranslateMessage( &msg );
+			DispatchMessage( &msg );
+		}
+		else 
+		{			
+		}
+	}
+	return 0;
+}
+
+
+bool HDRDemoWindow::OnKeyDown( WPARAM wParam, LPARAM lParam )
+{
+	_pWidget->OnKeyDown( wParam, lParam );
+	return false;
+}

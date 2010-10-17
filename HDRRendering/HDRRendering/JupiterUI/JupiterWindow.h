@@ -24,30 +24,30 @@ public:
 
 	virtual void Hide( void );
 
-protected:
-	virtual BOOL OnLButtonDown( WPARAM wParam, LPARAM lParam );
+//protected:
+	virtual bool OnLButtonDown( WPARAM wParam, LPARAM lParam );
 
-	virtual BOOL OnLButtonUp( WPARAM wParam, LPARAM lParam );
+	virtual bool OnLButtonUp( WPARAM wParam, LPARAM lParam );
 
-	virtual BOOL OnRButtonDown( WPARAM wParam, LPARAM lParam );
+	virtual bool OnRButtonDown( WPARAM wParam, LPARAM lParam );
 
-	virtual BOOL OnRButtonUp( WPARAM wParam, LPARAM lParam );
+	virtual bool OnRButtonUp( WPARAM wParam, LPARAM lParam );
 
-	virtual BOOL OnMouseMove( WPARAM wParam, LPARAM lParam );
+	virtual bool OnMouseMove( WPARAM wParam, LPARAM lParam );
 
-	virtual BOOL OnMouseLeave( WPARAM wParam, LPARAM lParam );	
+	virtual bool OnMouseLeave( WPARAM wParam, LPARAM lParam );	
 
-	virtual BOOL OnKeyDown( WPARAM wParam, LPARAM lParam );
+	virtual bool OnKeyDown( WPARAM wParam, LPARAM lParam );
 
-	virtual BOOL OnKeyUp( WPARAM wParam, LPARAM lParam );
+	virtual bool OnKeyUp( WPARAM wParam, LPARAM lParam );
 
-	virtual BOOL OnResize( WPARAM wParam, LPARAM lParam );
+	virtual bool OnResize( WPARAM wParam, LPARAM lParam );
 
-	virtual BOOL OnPaint( WPARAM wParam, LPARAM lParam );
+	virtual bool OnPaint( WPARAM wParam, LPARAM lParam );
 
-	virtual BOOL OnCreate( HWND hWnd, WPARAM wParam, LPARAM lParam );
+	virtual bool OnCreate( HWND hWnd, WPARAM wParam, LPARAM lParam );
 
-	virtual BOOL OnCommand( WPARAM wParam, LPARAM lParam );
+	virtual bool OnCommand( WPARAM wParam, LPARAM lParam );
 
 private:
 	CBaseWindow( const CBaseWindow& window ) { }
@@ -78,13 +78,30 @@ public:
 	virtual int Run( void );
 
 protected:
-	virtual BOOL OnResize( WPARAM wParam, LPARAM lParam );
+	virtual bool OnResize( WPARAM wParam, LPARAM lParam );
 
 
 protected:
 	static const int s_nWN = 6;
 	GLWidget* _glWidgets[s_nWN];
 	int _current;
+};
+
+class HDRDemoWindow : public CBaseWindow
+{
+public:
+	HDRDemoWindow( LPCSTR lpszClassName,
+		LPCTSTR lpszWindowName );
+
+	virtual ~HDRDemoWindow( void );
+
+	virtual int Run( void );
+
+protected:
+	virtual bool OnKeyDown( WPARAM wParam, LPARAM lParam );
+
+protected:
+	GLWidget* _pWidget;
 };
 
 #else
