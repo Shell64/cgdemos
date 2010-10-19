@@ -43,41 +43,6 @@ protected:
 	static GLint s_Viewport[4];
 };
 
-class SHDRRender : public GLWidget
-{
-public:
-	SHDRRender( HWND hParentWnd );
-
-	~SHDRRender();
-
-	virtual bool Initialize();
-
-protected:
-	virtual bool OnResize( WPARAM wParam, LPARAM lParam );
-
-	virtual bool OnPaint( WPARAM wParam, LPARAM lParam );
-
-	bool InitTexture( void );
-
-	bool InitShaders( void );
-
-	bool InitRenderTagets( void );
-
-	float GetExposure( void );
-
-private:
-	ProgramGLSL* m_pDownsampleProgram;
-	ProgramGLSL* m_pBlurXProgram;
-	ProgramGLSL* m_pBlurYProgram;
-	ProgramGLSL* m_pTonemapProgram;
-
-	GLTexInput* m_pHdrTex;	
-	GLTexImage* m_pDSTex;
-	GLTexImage* m_pBlurXTex;
-	GLTexImage* m_pBlurYTex;
-	float* m_GK;	
-};
-
 #else
 #error __JUPITER_CONTROLS_H__ already defined!
 #endif//__JUPITER_CONTROLS_H__

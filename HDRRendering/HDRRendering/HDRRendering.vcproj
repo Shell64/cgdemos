@@ -173,7 +173,15 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\HDRDemo.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\main.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SHDRDemo.cpp"
 				>
 			</File>
 		</Filter>
@@ -183,7 +191,11 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\3D\3d.h"
+				RelativePath=".\HDRDemo.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SHDRDemo.h"
 				>
 			</File>
 			<File
@@ -241,6 +253,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\JupiterUI\SHDRRender.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\JupiterUI\SHDRRender.h"
+				>
+			</File>
+			<File
 				RelativePath=".\JupiterUI\theme.manifest"
 				>
 			</File>
@@ -270,6 +290,14 @@
 			</File>
 			<File
 				RelativePath=".\OpenGL\glErrorUtil.h"
+				>
+			</File>
+			<File
+				RelativePath=".\OpenGL\glm_avl.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\OpenGL\glm_avl.h"
 				>
 			</File>
 			<File
@@ -345,6 +373,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\shaders\reflect.fp"
+				>
+			</File>
+			<File
+				RelativePath=".\shaders\reflect.vp"
+				>
+			</File>
+			<File
 				RelativePath=".\shaders\TM_FS.glsl"
 				>
 			</File>
@@ -356,6 +392,10 @@
 		<Filter
 			Name="3D"
 			>
+			<File
+				RelativePath=".\3D\3d.h"
+				>
+			</File>
 			<File
 				RelativePath=".\3D\Camera.cpp"
 				>
@@ -394,6 +434,26 @@
 			</File>
 			<File
 				RelativePath=".\3D\Vector3.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Mesh"
+			>
+			<File
+				RelativePath=".\Mesh\TriMesh.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Mesh\TriMesh.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Mesh\TriMeshManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Mesh\TriMeshManager.h"
 				>
 			</File>
 		</Filter>

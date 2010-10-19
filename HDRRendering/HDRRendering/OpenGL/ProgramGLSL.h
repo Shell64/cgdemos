@@ -4,11 +4,11 @@
 class ProgramGLSL
 {
 public:
-	ProgramGLSL( std::string tag = "" );
+	ProgramGLSL( const std::string& tag = "" );
 	
-	~ProgramGLSL(void);
+	virtual ~ProgramGLSL(void);
 
-	bool UseProgram();
+	bool UseProgram() const;
 
 	bool LinkProgram();	
 
@@ -16,18 +16,18 @@ public:
 
 	void DetachShaderObject( ShaderObject& shader );
 
-	GLint GetUniformLocation( const char* name );
+	GLint GetUniformLocation( const char* name ) const;
 	
-	inline bool IsLinked() { return m_is_linked; }
+	inline bool IsLinked( void ) const { return m_is_linked; }
 
-	inline GLuint GetProgramID() { return m_programID; }
+	inline GLuint GetProgramID( void ) const { return m_programID; }
 	
-	inline bool IsValidProgram() { return 0 != m_programID && m_is_linked; }
+	inline bool IsValidProgram( void ) const { return 0 != m_programID && m_is_linked; }
 
 private:
-	void PrintLinkLog(std::ostream&os);
+	void PrintLinkLog( std::ostream& os ) const;
 
-	void CheckLinkLog();
+	void CheckLinkLog( void );
 
 private:
 
@@ -35,6 +35,37 @@ private:
 	bool m_is_linked;
 
 	std::string m_tag;
+};
+
+class EffectGLSL : public ProgramGLSL
+{
+public:
+	EffectGLSL( const std::string& tag = "" );
+
+	~EffectGLSL( void );
+
+	bool Load( const char* vshader, const char* fshader );
+
+	void Begin( void ) const;
+
+	void End( void ) const;
+
+	void SetUniform( const char* name, int i ) const;
+
+	void SetUniform( const char* name, float f ) const;
+
+	void SetUniform( const char* name, int size, float* fv ) const;
+
+	void SetUniform( const char* name, const Vector3& v ) const;
+
+	void SetUniform( const char* name, const Color& c ) const;
+
+private:
+	inline void AttachShaderObject( ShaderObject& shader ) { ProgramGLSL::AttachShaderObject( shader ); };
+
+	inline void DetachShaderObject( ShaderObject& shader ) { ProgramGLSL::DetachShaderObject( shader ); };
+
+	inline GLint GetUniformLocation( const char* name ) const { return ProgramGLSL::GetUniformLocation( name ); };
 };
 
 #endif//__PROGRAM_H__

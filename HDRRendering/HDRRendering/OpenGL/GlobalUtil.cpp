@@ -1,4 +1,5 @@
 #include "../std.h"
+#include "../3D/3d.h"
 #include "OpenGL.h"
 
 #include "GlobalUtil.h"

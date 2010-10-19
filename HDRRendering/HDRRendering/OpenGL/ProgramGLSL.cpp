@@ -2,11 +2,12 @@
 #include <iostream>
 #include <string>
 
+#include "../3D/3d.h"
 #include "glErrorUtil.h"
 #include "ShaderObject.h"
 #include "ProgramGLSL.h"
 
-ProgramGLSL::ProgramGLSL( std::string tag /* = ""*/ )
+ProgramGLSL::ProgramGLSL( const std::string& tag /* = ""*/ )
 : m_is_linked( false ), m_programID( 0 ), m_tag(tag)
 {
 	m_programID = glCreateProgram();
@@ -18,7 +19,7 @@ ProgramGLSL::~ProgramGLSL( void )
 		glDeleteProgram( m_programID );
 }
 
-bool ProgramGLSL::UseProgram()
+bool ProgramGLSL::UseProgram() const
 {
 	if ( IsValidProgram() )
 	{
@@ -32,7 +33,7 @@ bool ProgramGLSL::UseProgram()
 	}
 }
 
-void ProgramGLSL::PrintLinkLog( std::ostream&os )
+void ProgramGLSL::PrintLinkLog( std::ostream&os ) const
 {
 	GLint len = 0;	
 
@@ -48,8 +49,7 @@ void ProgramGLSL::PrintLinkLog( std::ostream&os )
 
 	if( strstr( linkLog, "failed" ) )
 	{
-		os << m_tag << "\t" << linkLog + ( linkLog[0] == ' '? 1 : 0 ) << "\n";
-		m_is_linked = false;
+		os << m_tag << "\t" << linkLog + ( linkLog[0] == ' '? 1 : 0 ) << "\n";		
 	}
 
 	delete linkLog;
@@ -96,7 +96,7 @@ void ProgramGLSL::DetachShaderObject( ShaderObject& shader )
 	}
 }
 
-GLint ProgramGLSL::GetUniformLocation( const char* name )
+GLint ProgramGLSL::GetUniformLocation( const char* name ) const
 {
 	if ( IsValidProgram() )
 	{
@@ -106,4 +106,59 @@ GLint ProgramGLSL::GetUniformLocation( const char* name )
 	{
 		return -1;
 	}
+}
+
+EffectGLSL::EffectGLSL( const std::string& tag /*= "" */ )
+: ProgramGLSL( tag )
+{
+
+}
+
+EffectGLSL::~EffectGLSL( void )
+{
+
+}
+
+bool EffectGLSL::Load( const char* vshader, const char* fshader )
+{
+	if ( NULL != vshader )
+		this->AttachShaderObject( ShaderObject( GL_VERTEX_SHADER, vshader ) );
+	if ( NULL != fshader )
+		this->AttachShaderObject( ShaderObject( GL_FRAGMENT_SHADER, fshader ) );
+	return this->LinkProgram();
+}
+
+void EffectGLSL::Begin( void ) const
+{
+	this->UseProgram();
+}
+
+void EffectGLSL::End( void ) const
+{
+	glUseProgram( 0 );
+}
+
+void EffectGLSL::SetUniform( const char* name, int i ) const
+{
+	glUniform1i( this->GetUniformLocation( name ), i );
+}
+
+void EffectGLSL::SetUniform( const char* name, float f ) const
+{
+	glUniform1f( this->GetUniformLocation( name ), f );
+}
+
+void EffectGLSL::SetUniform( const char* name, int size, float* fv ) const
+{
+	glUniform1fv( this->GetUniformLocation( name ), size, fv );
+}
+
+void EffectGLSL::SetUniform( const char* name, const Vector3& v ) const
+{
+	glUniform3fv( this->GetUniformLocation( name ), 1, (const GLfloat*)&v );
+}
+
+void EffectGLSL::SetUniform( const char* name, const Color& c ) const
+{
+	glUniform4fv( this->GetUniformLocation( name ), 1, (const GLfloat*)&c );
 }

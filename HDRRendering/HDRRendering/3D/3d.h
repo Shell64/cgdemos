@@ -4,6 +4,7 @@
 #include "Math.h"
 #include "Vector3.h"
 #include "Matrix4.h"
+#include "Color.h"
 #include "Camera.h"
 
 #endif//__3D_H__

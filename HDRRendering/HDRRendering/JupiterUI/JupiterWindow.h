@@ -65,44 +65,7 @@ protected:
 };
 
 
-class GLWidget;
 
-class MainWindow : public CBaseWindow
-{
-public:
-	MainWindow( LPCTSTR lpszClassName,
-		LPCTSTR lpszWindowName );
-
-	virtual ~MainWindow( void );
-
-	virtual int Run( void );
-
-protected:
-	virtual bool OnResize( WPARAM wParam, LPARAM lParam );
-
-
-protected:
-	static const int s_nWN = 6;
-	GLWidget* _glWidgets[s_nWN];
-	int _current;
-};
-
-class HDRDemoWindow : public CBaseWindow
-{
-public:
-	HDRDemoWindow( LPCSTR lpszClassName,
-		LPCTSTR lpszWindowName );
-
-	virtual ~HDRDemoWindow( void );
-
-	virtual int Run( void );
-
-protected:
-	virtual bool OnKeyDown( WPARAM wParam, LPARAM lParam );
-
-protected:
-	GLWidget* _pWidget;
-};
 
 #else
 #error __JUPITER_WINDOW_H__ already defined!

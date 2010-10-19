@@ -17,9 +17,35 @@ protected:
 
 	virtual bool OnResize( WPARAM wParam, LPARAM lParam );
 
+	virtual bool OnLButtonDown( WPARAM wParam, LPARAM lParam );
+
+	virtual bool OnMouseMove( WPARAM wParam, LPARAM lParam );
+
+	virtual bool OnLButtonUp( WPARAM wParam, LPARAM lParam );
+
+	void RenderSkybox( void );
+
+	void RenderMesh( void );
+
+	void RenderTrimesh( void );
+	
+	void RenderGLMMesh( void );
+
 protected:
-	Camera _camera;
+	OrbitCamera _camera;
 	GLTexCubeInput* _pTexCubeInput;
+	EffectGLSL* _pEffect;
+	GLTexInput* _pTexture;
+	Vector3 _etaRatio;
+	Color _matColor;
+
+	GLMmodel* _pModel;
+	TriMesh *_pMesh;
+
+	bool _bTrimesh;
+
+	Vector3 _lastPos;
+	bool _bMove;
 };
 
 #endif//__HDR_RENDER_H__
