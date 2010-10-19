@@ -14,6 +14,6 @@ int WINAPI WinMain( HINSTANCE hInstance,
 				   LPSTR lpCmdLine,
 				   int nShowCmd )
 {		
-	HDRDemo Window( APP_CLASS_NMAE, APP_WINDOW_NAME );
+	SHDRDemo Window( APP_CLASS_NMAE, APP_WINDOW_NAME );
 	return Window.Run();
 }

@@ -1,8 +1,6 @@
 #ifndef __TEX_IMAGE_H__
 #define __TEX_IMAGE_H__
 
-class ProgramGLSL;
-
 class GLTexImage
 {
 public:
@@ -24,13 +22,12 @@ public:
 
 	void DetachFBO( int i );
 
-	void InitTexture( int width, int height, GLuint format = GL_RGBA32F_ARB, bool clamp_to_edge = true );
+	bool Initialize( int width, int height, GLuint iformat = GL_RGBA32F_ARB,
+		GLuint format = 0, GLuint type = 0, const void* data = NULL );
 
 	void SetTextureParam();
 
 	void FitViewport();
-
-	void MakeGray();
 
 public:
 	inline GLuint GetTexID() { return m_texID; }
@@ -50,6 +47,11 @@ public:
 	inline GLuint GetFormat() { return m_format; }
 
 protected:
+	bool BeginInitialize( void );
+
+	bool EndInitialize( void );
+
+protected:
 	GLuint m_texID;
 	int m_imageWidth;
 	int m_imageHeight;
@@ -58,15 +60,16 @@ protected:
 	int m_drawWidth;
 	int m_drawHeight;
 	GLuint m_format;
+	bool _bIsValid;
 };
 
 class GLTexInput : public GLTexImage
 {
 public:
-	bool SetImageData( int width,  int height, const void * data, 
-		GLuint gl_iformat, GLuint gl_format, GLuint gl_type );
+	bool Load( const char* filename, GLuint iformat = GL_RGBA, bool color = true );
 
-	bool LoadImageFromFile( const char* filename, bool color = true );
+protected:
+	bool LoadFile( const char* filename, GLuint& imID );
 
 	unsigned char* CreateGrayImage(
 							const unsigned char* img, 
