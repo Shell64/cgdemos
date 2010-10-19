@@ -9,28 +9,6 @@ GLTexCube::GLTexCube(void)
 {	
 }
 
-GLTexCube::GLTexCube( int width[6], int height[6], GLint iformat /*= GL_RGBA32F */ )
-:_texID( 0 ), _bIsValid( false )
-{	
-	BeginInitTexture();
-	for ( int i = 0; i < 6; ++i )
-	{
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, iformat, width[ i ], height[ i ], 0, 0, 0, NULL );
-	}
-	EndInitTexture();
-}
-
-GLTexCube::GLTexCube( int width, int height, GLint iformat /*= GL_RGBA32F */ )
-:_texID( 0 ), _bIsValid( false )
-{
-	BeginInitTexture();
-	for ( int i = 0; i < 6; ++i )
-	{
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, iformat, width, height, 0, 0, 0, NULL );
-	}
-	EndInitTexture();
-}
-
 GLTexCube::~GLTexCube(void)
 {
 	if ( _texID > 0 )
@@ -41,7 +19,7 @@ GLTexCube::~GLTexCube(void)
 	_bIsValid = false;
 }
 
-void GLTexCube::BindTex( void )
+void GLTexCube::Bind( void )
 {
 	if ( !_bIsValid ) {
 		LogError( "the texture is invalid!" );
@@ -50,7 +28,7 @@ void GLTexCube::BindTex( void )
 	glBindTexture( GL_TEXTURE_CUBE_MAP, _texID );
 }
 
-void GLTexCube::UnbindTex( void )
+void GLTexCube::Unbind( void )
 {
 	if ( !_bIsValid ) {
 		LogError( "the texture is invalid!" );
@@ -76,38 +54,54 @@ void GLTexCube::SetTextureParams( void )
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
 }
 
-void GLTexCube::BeginInitTexture( void )
+bool GLTexCube::BeginInitialize( void )
 {
+	if ( 0 != _texID ) {
+		LogError( "texture already initialized" );
+		return false;
+	}
+
 	glGenTextures( 1, &_texID );
 
 	glBindTexture( GL_TEXTURE_CUBE_MAP, _texID );
 
 	this->SetTextureParams();
+
+	return true;
 }
 
-void GLTexCube::EndInitTexture( void )
+bool GLTexCube::EndInitialize( void )
 {
 	glBindTexture( GL_TEXTURE_CUBE_MAP, 0 );
-	_bIsValid = true;
+	return _bIsValid = true;
 }
 
-GLTexCubeInput::GLTexCubeInput( const char* filename, GLint iformat/* = GL_RGBA32F*/ )
+bool GLTexCube::Initialize( int width, int height, GLint iformat /*= GL_RGBA32F */ )
 {
-	ILuint imgIDs[ 6 ];
-	RET( this->ExtractCubeMap( filename, imgIDs ) );
-
-	BeginInitTexture();
+	V_RET( BeginInitialize() );
 	for ( int i = 0; i < 6; ++i )
 	{
-		ilBindImage( imgIDs[ i ] );
-		int format = ilGetInteger( IL_IMAGE_FORMAT );
-		int width = ilGetInteger( IL_IMAGE_WIDTH );
-		int height = ilGetInteger( IL_IMAGE_HEIGHT );
-		int type = ilGetInteger( IL_IMAGE_TYPE );
-		glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, iformat, width, height, 0, format, type, ilGetData() );		
-		ilDeleteImage( imgIDs[ i ] );
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, iformat, width, height, 0, 0, 0, NULL );
 	}
-	EndInitTexture();
+	return EndInitialize();	
+}
+
+bool GLTexCube::Initialize( int width[6], int height[6], GLint iformat /*= GL_RGBA32F */ )
+{
+	V_RET( BeginInitialize() );
+	for ( int i = 0; i < 6; ++i )
+	{
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, iformat, width[ i ], height[ i ], 0, 0, 0, NULL );
+	}
+	return EndInitialize();	
+}
+
+/************************************************************************
+ * class GLTexCubeInput begin
+ ************************************************************************/
+GLTexCubeInput::GLTexCubeInput( void )
+{
+	
 }
 
 /************************************************************************
@@ -172,3 +166,21 @@ bool GLTexCubeInput::ExtractCubeMap( const char* filename, ILuint* imgIDs )
 	return true;
 }
 
+bool GLTexCubeInput::Load( const char* filename, GLint iformat /*= GL_RGBA32F */ )
+{
+	ILuint imgIDs[ 6 ];
+	V_RET( this->ExtractCubeMap( filename, imgIDs ) );
+
+	V_RET( BeginInitialize() );
+	for ( int i = 0; i < 6; ++i )
+	{
+		ilBindImage( imgIDs[ i ] );
+		int format = ilGetInteger( IL_IMAGE_FORMAT );
+		int width = ilGetInteger( IL_IMAGE_WIDTH );
+		int height = ilGetInteger( IL_IMAGE_HEIGHT );
+		int type = ilGetInteger( IL_IMAGE_TYPE );
+		glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, iformat, width, height, 0, format, type, ilGetData() );		
+		ilDeleteImage( imgIDs[ i ] );
+	}
+	return EndInitialize();
+}

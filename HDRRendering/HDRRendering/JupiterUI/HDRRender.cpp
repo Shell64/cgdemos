@@ -36,13 +36,14 @@ bool HDRRender::Initialize( void )
 	glShadeModel(GL_SMOOTH);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
-	_pTexCubeInput = new GLTexCubeInput("uffizi_cross.hdr");
+	_pTexCubeInput = new GLTexCubeInput();
+	_pTexCubeInput->Load( "uffizi_cross.hdr" );
 
 	_pEffect = new EffectGLSL( "reflect effect" );
 	_pEffect->Load( "shaders/reflect.vp", "shaders/reflect.fp" );
 
 	_pTexture = new GLTexInput();
-	_pTexture->LoadImageFromFile( "media/pro.bmp" );	
+	_pTexture->Load( "media/pro.bmp" );	
 
 	if ( _bTrimesh ) 
 	{
@@ -173,7 +174,7 @@ void HDRRender::RenderSkybox( void )
 	glEnable(GL_TEXTURE_GEN_S);
 	glEnable(GL_TEXTURE_GEN_T);
 	glEnable(GL_TEXTURE_GEN_R);
-	_pTexCubeInput->BindTex();
+	_pTexCubeInput->Bind();
 
 	float s = 500.0f;
 	glBegin(GL_QUADS); 
@@ -226,7 +227,7 @@ void HDRRender::RenderMesh( void )
 	glActiveTexture( GL_TEXTURE0 );
 	_pTexture->Bind();
 	glActiveTexture( GL_TEXTURE1 );
-	_pTexCubeInput->BindTex();
+	_pTexCubeInput->Bind();
 
 	_pEffect->SetUniform( "env", 1 );
 	_pEffect->SetUniform( "tex", 0 );

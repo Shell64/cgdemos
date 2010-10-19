@@ -28,11 +28,25 @@ GLTexImage::~GLTexImage(void)
 
 void GLTexImage::Bind()
 {
+	if ( !_bIsValid ) {
+		LogError( "the texture is invalid!" );
+		return;
+	}
 	glBindTexture( GlobalUtil::s_texTarget, m_texID );
 }
 
 void GLTexImage::Unbind()
 {
+	if ( !_bIsValid ) {
+		LogError( "the texture is invalid!" );
+		return;
+	}
+	GLint currentId = 0;
+	glGetIntegerv( GL_TEXTURE_BINDING_2D, &currentId );
+	if ( m_texID != currentId ) {
+		LogError( "this texture is not binding!" );
+		return;
+	}
 	glBindTexture( GlobalUtil::s_texTarget, 0 );
 }
 
@@ -71,40 +85,25 @@ void GLTexImage::DetachFBO( int i )
 		i + GL_COLOR_ATTACHMENT0_EXT, GlobalUtil::s_texTarget, 0, 0 );
 }
 
-void GLTexImage::InitTexture( int width, int height,
-							 GLuint format /*= GL_RGBA32F_ARB*/,
-							 bool clamp_to_edge /*= true */ )
+bool GLTexImage::Initialize( int width, int height, GLuint iformat /*= GL_RGBA32F_ARB*/, 
+							GLuint format /*= 0*/, GLuint type /*= 0*/, const void* data /*= NULL */ )
 {
-	if( 0 != m_texID && width == m_texWidth && height == m_texHeight ) return;
-	if( 0 == m_texID ) glGenTextures( 1, &m_texID );
+	V_RET( BeginInitialize() );
 
 	m_texWidth = m_imageWidth = m_drawWidth = width;
-	m_texHeight = m_imageHeight = m_drawHeight = height;
+	m_texHeight = m_imageHeight = m_drawHeight = height;	
+	m_format = iformat;
 
-	Bind();
+	this->SetTextureParam();
 
-	if( clamp_to_edge )
-	{
-		glTexParameteri( GlobalUtil::s_texTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE ); 
-		glTexParameteri( GlobalUtil::s_texTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE ); 
-	}
-	else
-	{
-		//out of bound tex read returns 0??
-		glTexParameteri( GlobalUtil::s_texTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER ); 
-		glTexParameteri( GlobalUtil::s_texTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER ); 
-	}
-	glTexParameteri( GlobalUtil::s_texTarget, GL_TEXTURE_MAG_FILTER, GL_NEAREST ); 
-	glTexParameteri( GlobalUtil::s_texTarget, GL_TEXTURE_MIN_FILTER, GL_NEAREST ); 
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glTexImage2D( GlobalUtil::s_texTarget, 0, iformat, width, height, 0, format, type, data );
 
-	glTexImage2D( GlobalUtil::s_texTarget, 0, format, m_texWidth, m_texHeight, 0, 0, 0, NULL); 
-
-	Unbind();
+	return EndInitialize();	
 }
 
 void GLTexImage::SetTextureParam()
 {
+	glPixelStorei(GL_UNPACK_ALIGNMENT , 1); 
 	glTexParameteri( GlobalUtil::s_texTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE ); 
 	glTexParameteri( GlobalUtil::s_texTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE ); 
 	glTexParameteri( GlobalUtil::s_texTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR ); 
@@ -141,98 +140,60 @@ void GLTexImage::FitViewport( )
 	glLoadIdentity();
 }
 
-void GLTexImage::MakeGray()
-{	
-	FramebufferObject fbo;
-	fbo.Bind();	
-
-	ProgramGLSL grayProgram;
-	grayProgram.AttachShaderObject(
-		ShaderObject( GL_FRAGMENT_SHADER, "GrayScale.glsl", true ) );
-	grayProgram.LinkProgram();
-	grayProgram.UseProgram();
-	GLint texParam = grayProgram.GetUniformLocation( "Tex" );
-	glUniform1i( texParam, 0 );
-
-	this->AttachToFBO( 0 );
-	this->FitViewport();
-
-	this->Bind();
-	this->DrawQuad();
-	this->Unbind();
-	this->DetachFBO( 0 );
-	glUseProgram(0);
-	FramebufferObject::Disable();
-}
-
-bool GLTexInput::SetImageData( int width, int height,
-							  const void * data,
-							  GLuint gl_iformat,
-							  unsigned int gl_format,
-							  unsigned int gl_type )
+bool GLTexImage::BeginInitialize( void )
 {
-	//check whether the image format is supported
-	
-	//check whether the image exceed the maximum size of texture
-
-	if( m_texID == 0 ) glGenTextures( 1, &m_texID ); 
-	Bind();
-	CheckErrorsGL( "glBindTexture" );
-
-	m_texWidth = m_imageWidth = m_drawWidth = width;
-	m_texHeight = m_imageHeight = m_drawHeight = height;
-	m_format = gl_format;
-
-	glPixelStorei(GL_UNPACK_ALIGNMENT , 1); 
-	SetTextureParam();	
-
-	glTexImage2D( GlobalUtil::s_texTarget, 0, gl_iformat, //internal format changed
-		m_imageWidth, m_imageHeight, 0,
-		gl_format, gl_type, data );
-	
-	Unbind();
-
+	if( 0 == m_texID ) glGenTextures( 1, &m_texID );
+	else
+	{
+		LogError( "texture already initialized" );
+		return false;
+	}
+	glBindTexture( GlobalUtil::s_texTarget, m_texID );
 	return true;
 }
 
-bool GLTexInput::LoadImageFromFile( const char* filename, 								  
-								   bool color /*= true*/)
+bool GLTexImage::EndInitialize( void )
 {
-	ilInit();
-	ilOriginFunc( IL_ORIGIN_UPPER_LEFT );
-	ilEnable( IL_ORIGIN_SET );
+	glBindTexture( GlobalUtil::s_texTarget, 0 );
+	return _bIsValid =true;
+}
 
-	unsigned int imId = ilGenImage();
-	ilBindImage( imId );
-	if ( !ilLoadImage( filename ) )
-	{
-		std::cout << "failed to load file.\n";
-		ilDeleteImage( imId );
-		return false;
-	}
+/************************************************************************
+ * class GLTexInput begin
+ ************************************************************************/
+bool GLTexInput::Load( const char* filename, 
+								   GLuint iformat /*= GL_RGBA*/,
+								   bool color /*= true */ )
+{
+	GLuint imId = 0;
+	V_RET( LoadFile( filename, imId ) );
+
 	int width = ilGetInteger( IL_IMAGE_WIDTH );
 	int height = ilGetInteger( IL_IMAGE_HEIGHT );	
-	int ilformat = ilGetInteger( IL_IMAGE_FORMAT );	
+	int format = ilGetInteger( IL_IMAGE_FORMAT );	
 	int type = ilGetInteger( IL_IMAGE_TYPE );	
 
-	bool ret = true;
-
-	if ( color || GL_LUMINANCE == ilformat )
+	bool ret = false;
+	if ( IL_LUMINANCE == format || IL_LUMINANCE_ALPHA == format )
 	{
-		GLuint iformat = GL_RGBA32F_ARB;
-		if ( GL_LUMINANCE == ilformat )
-			iformat = GL_LUMINANCE32F_ARB;
-		ret = SetImageData( width, height, ilGetData(), iformat, ilformat, type );
+		ret = this->Initialize( width, height, iformat, format, type, ilGetData() );
 	}
-	else 
+	else if ( color )
+	{
+		ret = this->Initialize( width, height, iformat, format, type, ilGetData() );
+	}
+	else
 	{
 		unsigned char* gray_image = CreateGrayImage( 
-			(const unsigned char*)ilGetData(), width, height, ilformat );
-		if ( NULL == gray_image ) return false;
-		ret = SetImageData( width, height, gray_image, GL_LUMINANCE32F_ARB, GL_LUMINANCE, GL_UNSIGNED_BYTE );	
-		delete[] gray_image;
-	}
-	
+			(const unsigned char*)ilGetData(), width, height, format );
+
+		if ( NULL != gray_image )
+		{
+			ret = this->Initialize( width, height, iformat, GL_LUMINANCE, GL_UNSIGNED_BYTE, gray_image );
+			SAFE_RELEASE( gray_image );
+		}		
+	}	
+
 	ilDeleteImage( imId );
 	return ret;
 }
@@ -261,4 +222,23 @@ unsigned char* GLTexInput::CreateGrayImage(
 		}
 	}
 	return gray_image;
+}
+
+bool GLTexInput::LoadFile( const char* filename, GLuint& imId )
+{
+	ilInit();
+	ilOriginFunc( IL_ORIGIN_UPPER_LEFT );
+	ilEnable( IL_ORIGIN_SET );
+
+	imId = ilGenImage();
+	ilBindImage( imId );
+	if ( !ilLoadImage( filename ) )
+	{		
+		ilDeleteImage( imId );
+		std::strstream ss;
+		ss << "failed to load file " << filename;
+		LogError( ss.str() );
+		return false;
+	}
+	return true;
 }

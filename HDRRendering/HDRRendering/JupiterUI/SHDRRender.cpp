@@ -118,16 +118,16 @@ bool SHDRRender::Initialize()
 bool SHDRRender::InitShaders( void )
 {
 	V_RET( this->m_pDownsampleEffect = new EffectGLSL( "down sample" ) );	
-	V_RET( this->m_pDownsampleEffect->Load( NULL, "shaders/DS_FS.glsl" ) );
+	V_RET( this->m_pDownsampleEffect->Load( NULL, "shaders/ds.fp" ) );
 
 	V_RET( this->m_pBlurXEffect = new EffectGLSL( "blur X" ) );
-	V_RET( this->m_pBlurXEffect->Load( NULL, "shaders/BX_FS.glsl" ) );	
+	V_RET( this->m_pBlurXEffect->Load( NULL, "shaders/bx.fp" ) );	
 
 	V_RET( this->m_pBlurYEffect = new EffectGLSL( "blur Y" ) );
-	V_RET( this->m_pBlurYEffect->Load( NULL, "shaders/BY_FS.glsl" ) );
+	V_RET( this->m_pBlurYEffect->Load( NULL, "shaders/by.fp" ) );
 
 	V_RET( this->m_pTonemapingEffect = new EffectGLSL( "tone mapping" ) );
-	V_RET( this->m_pTonemapingEffect->Load( NULL, "shaders/TM_FS.glsl" ) );	
+	V_RET( this->m_pTonemapingEffect->Load( NULL, "shaders/tm.fp" ) );
 
 	return true;
 }
@@ -138,20 +138,20 @@ bool SHDRRender::InitRenderTagets( void )
 	int height = m_pHdrTex->GetTexHeight();
 
 	V_RET( m_pDSTex = new GLTexImage() );
-	this->m_pDSTex->InitTexture( width / 2, height / 2 );
+	this->m_pDSTex->Initialize( width / 2, height / 2 );
 
 	V_RET( m_pBlurXTex = new GLTexImage() );	
-	this->m_pBlurXTex->InitTexture( width / 2, height / 2  );
+	this->m_pBlurXTex->Initialize( width / 2, height / 2  );
 
 	V_RET( m_pBlurYTex = new GLTexImage() );	
-	this->m_pBlurYTex->InitTexture( width / 2, height / 2 );
+	this->m_pBlurYTex->Initialize( width / 2, height / 2 );
 	return true;
 }
 
 bool SHDRRender::InitTexture( void )
 {
 	V_RET( m_pHdrTex = new GLTexInput() );
-	V_RET( m_pHdrTex->LoadImageFromFile( "RNL.hdr" ) );
+	V_RET( m_pHdrTex->Load( "RNL.hdr" ) );
 
 	return true;
 }

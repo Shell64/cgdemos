@@ -7,25 +7,26 @@
 
 class GLTexCube
 {
-public:
-	GLTexCube( int width[6], int height[6], GLint iformat = GL_RGBA32F );
+public:	
+	GLTexCube( void );
 
-	GLTexCube( int width, int height, GLint iformat = GL_RGBA32F );
-	
 	virtual ~GLTexCube(void);
 
-	void BindTex( void );
+	void Bind( void );
 
-	void UnbindTex( void );
+	void Unbind( void );
+
+	bool Initialize( int width, int height, GLint iformat = GL_RGBA32F );
+
+	bool Initialize( int width[6], int height[6], GLint iformat = GL_RGBA32F );
 
 protected:
-	GLTexCube(void);
 
 	void SetTextureParams( void );
 
-	void BeginInitTexture( void );
+	bool BeginInitialize( void );
 
-	void EndInitTexture( void );
+	bool EndInitialize( void );
 
 protected:
 	GLuint _texID;
@@ -35,15 +36,15 @@ protected:
 class GLTexCubeInput : public GLTexCube
 {
 public:
-	GLTexCubeInput( const char* filename, GLint iformat = GL_RGBA32F );
+	GLTexCubeInput( void );
 
 	~GLTexCubeInput( void ) { }
 
-protected:
+	bool Load( const char* filename, GLint iformat = GL_RGBA32F );
 
+protected:
 	bool ExtractCubeMap( const char* filename, ILuint* imgIDs );
 
-	ILenum GetDataType( ILint format, ILint bpp );
 };
 
 #endif//__GL_TEX_CUBE_H__
