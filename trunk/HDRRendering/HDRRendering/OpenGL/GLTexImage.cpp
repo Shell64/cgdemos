@@ -1,4 +1,5 @@
 #include "../std.h"
+#include "../3D/3d.h"
 #include "OpenGL.h"
 
 #include "GlobalUtil.h"
@@ -25,12 +26,12 @@ GLTexImage::~GLTexImage(void)
 	}
 }
 
-void GLTexImage::BindTex()
+void GLTexImage::Bind()
 {
 	glBindTexture( GlobalUtil::s_texTarget, m_texID );
 }
 
-void GLTexImage::UnbindTex()
+void GLTexImage::Unbind()
 {
 	glBindTexture( GlobalUtil::s_texTarget, 0 );
 }
@@ -80,7 +81,7 @@ void GLTexImage::InitTexture( int width, int height,
 	m_texWidth = m_imageWidth = m_drawWidth = width;
 	m_texHeight = m_imageHeight = m_drawHeight = height;
 
-	BindTex();
+	Bind();
 
 	if( clamp_to_edge )
 	{
@@ -99,15 +100,15 @@ void GLTexImage::InitTexture( int width, int height,
 
 	glTexImage2D( GlobalUtil::s_texTarget, 0, format, m_texWidth, m_texHeight, 0, 0, 0, NULL); 
 
-	UnbindTex();
+	Unbind();
 }
 
 void GLTexImage::SetTextureParam()
 {
 	glTexParameteri( GlobalUtil::s_texTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE ); 
 	glTexParameteri( GlobalUtil::s_texTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE ); 
-	glTexParameteri( GlobalUtil::s_texTarget, GL_TEXTURE_MAG_FILTER, GL_NEAREST ); 
-	glTexParameteri( GlobalUtil::s_texTarget, GL_TEXTURE_MIN_FILTER, GL_NEAREST ); 
+	glTexParameteri( GlobalUtil::s_texTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR ); 
+	glTexParameteri( GlobalUtil::s_texTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); 
 	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
 }
 
@@ -156,9 +157,9 @@ void GLTexImage::MakeGray()
 	this->AttachToFBO( 0 );
 	this->FitViewport();
 
-	this->BindTex();
+	this->Bind();
 	this->DrawQuad();
-	this->UnbindTex();
+	this->Unbind();
 	this->DetachFBO( 0 );
 	glUseProgram(0);
 	FramebufferObject::Disable();
@@ -175,7 +176,7 @@ bool GLTexInput::SetImageData( int width, int height,
 	//check whether the image exceed the maximum size of texture
 
 	if( m_texID == 0 ) glGenTextures( 1, &m_texID ); 
-	BindTex();
+	Bind();
 	CheckErrorsGL( "glBindTexture" );
 
 	m_texWidth = m_imageWidth = m_drawWidth = width;
@@ -189,7 +190,7 @@ bool GLTexInput::SetImageData( int width, int height,
 		m_imageWidth, m_imageHeight, 0,
 		gl_format, gl_type, data );
 	
-	UnbindTex();
+	Unbind();
 
 	return true;
 }

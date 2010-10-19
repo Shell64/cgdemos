@@ -2,10 +2,15 @@
 #include "../3D/3d.h"
 #include "../OpenGL/OpenGL.h"
 #include "JupiterUI.h"
+
 #include "HDRRender.h"
 
 HDRRender::HDRRender( HWND hParentWnd )
-:GLWidget( hParentWnd ),_camera( Vector3( 0.f, 2.f, 0.f ) )
+:GLWidget( hParentWnd ),_camera( Vector3( 0.f, 0.f, 50.f ) ),
+_pTexCubeInput( NULL ), _pEffect( NULL ), _pTexture( NULL ),
+_bMove( false ), _etaRatio( 0.8f, 0.8f, 0.8f ),
+_matColor( 0.1f, 0.1f, 0.12f ), _pModel( NULL ),
+_pMesh( NULL ), _bTrimesh( true )
 {
 
 }
@@ -13,6 +18,10 @@ HDRRender::HDRRender( HWND hParentWnd )
 HDRRender::~HDRRender(void)
 {
 	SAFE_RELEASE( _pTexCubeInput );
+	SAFE_RELEASE( _pEffect );
+	SAFE_RELEASE( _pTexture );
+	SAFE_RELEASE( _pModel );
+	/*SAFE_RELEASE( _pMesh );*/
 }
 
 bool HDRRender::Initialize( void )
@@ -21,7 +30,32 @@ bool HDRRender::Initialize( void )
 
 	glewInit();
 
+	glClearDepth(1.0f);
+	glDepthFunc(GL_LEQUAL);
+	glEnable(GL_DEPTH_TEST);
+	glShadeModel(GL_SMOOTH);
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
 	_pTexCubeInput = new GLTexCubeInput("uffizi_cross.hdr");
+
+	_pEffect = new EffectGLSL( "reflect effect" );
+	_pEffect->Load( "shaders/reflect.vp", "shaders/reflect.fp" );
+
+	_pTexture = new GLTexInput();
+	_pTexture->LoadImageFromFile( "media/pro.bmp" );	
+
+	if ( _bTrimesh ) 
+	{
+		_pMesh = TriMeshManager::get()->getTriMesh( "teapot.ms3d" );
+	}
+	else
+	{
+		_pModel = glmReadOBJ( "media/buddha/buddha.obj" );
+		glmFacetNormals( _pModel );
+		glmVertexNormals( _pModel, 90.f );
+		glmLinearTexture( _pModel );
+	}
+
 	return true;
 }
 
@@ -29,13 +63,98 @@ bool HDRRender::OnPaint( WPARAM wParam, LPARAM lParam )
 {
 	V_RET( this->MakeCurrent() );
 
+	glClear( GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT );
+
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
-	Vector3 center = _camera.Pos() + _camera.Look();
-	gluLookAt( _camera.Pos().x, _camera.Pos().y, _camera.Pos().z,
-		center.x, center.y, center.z, 
-		_camera.Up().x, _camera.Up().y, _camera.Up().z );
+	const Vector3& eyePos = _camera.GetEyePos();
+	const Vector3& center = _camera.GetTarget();
+	const Vector3& up = _camera.GetUp();
+	gluLookAt( eyePos.x, eyePos.y, eyePos.z, 
+		center.x, center.y, center.z,
+		up.x, up.y, up.z );
 
+	this->RenderSkybox();
+
+	this->RenderMesh();
+
+	SwapBuffers( _hDC );
+	return true;
+}
+
+bool HDRRender::OnKeyDown( WPARAM wParam, LPARAM lParam )
+{
+	const float units = 10.f;
+	switch( wParam )
+	{
+	case VK_UP:
+		_camera.Pitch( units );
+		break;
+	case VK_DOWN:
+		_camera.Pitch( -units );
+		break;
+	case VK_LEFT:
+		_camera.Yaw( -units );
+		break;
+	case VK_RIGHT:
+		_camera.Yaw( units );
+		break;
+	//case 'A':
+	//	_camera.Roll( units );
+	//	break;
+	//case 'D':
+	//	_camera.Roll( -units );
+	//	break;
+	case 'W':
+		_camera.Zoom( units );
+		break;
+	case 'S':
+		_camera.Zoom( -units );
+		break;
+	default:
+		break;
+	}
+	this->OnPaint( NULL, NULL );
+	return false;
+}
+
+bool HDRRender::OnResize( WPARAM wParam, LPARAM lParam )
+{
+	int width = LOWORD(lParam);
+	int height = HIWORD(lParam);
+
+	glViewport( 0, 0, width, height );
+	
+	glMatrixMode( GL_PROJECTION );
+	glLoadIdentity();
+	gluPerspective( 45.0, width / float( height ), 0.1, 1000.0 );
+
+	return false;
+}
+
+bool HDRRender::OnLButtonDown( WPARAM wParam, LPARAM lParam )
+{
+	//int xPos = GET_X_LPARAM(lParam); 
+	//int yPos = GET_Y_LPARAM(lParam); 
+	//_bMove = true;
+	//_lastPos =
+	return true;
+}
+
+bool HDRRender::OnMouseMove( WPARAM wParam, LPARAM lParam )
+{
+	//int xPos = GET_X_LPARAM(lParam); 
+	//int yPos = GET_Y_LPARAM(lParam); 
+	return true;
+}
+
+bool HDRRender::OnLButtonUp( WPARAM wParam, LPARAM lParam )
+{
+	return true;
+}
+
+void HDRRender::RenderSkybox( void )
+{	
 	GLfloat s_plane[] = { 1.0, 0.0, 0.0, 0.0 };
 	GLfloat t_plane[] = { 0.0, 1.0, 0.0, 0.0 };
 	GLfloat r_plane[] = { 0.0, 0.0, 1.0, 0.0 };
@@ -93,51 +212,81 @@ bool HDRRender::OnPaint( WPARAM wParam, LPARAM lParam )
 	glDisable(GL_TEXTURE_GEN_T);
 	glDisable(GL_TEXTURE_GEN_R);
 	glDisable(GL_TEXTURE_CUBE_MAP);
-
-	SwapBuffers( _hDC );
-	return true;
 }
 
-bool HDRRender::OnKeyDown( WPARAM wParam, LPARAM lParam )
+void HDRRender::RenderMesh( void )
 {
-	const float units = 10.f;
-	switch( wParam )
-	{
-	case VK_UP:
-		_camera.Pitch( units );
-		break;
-	case VK_DOWN:
-		_camera.Pitch( -units );
-		break;
-	case VK_LEFT:
-		_camera.Yaw( -units );
-		break;
-	case VK_RIGHT:
-		_camera.Yaw( units );
-		break;
-	/*case 'W':
-		_camera.Walk( units );
-		break;
-	case 'S':
-		_camera.Walk( -units );
-		break;*/
-	default:
-		break;
-	}
-	this->OnPaint( NULL, NULL );
-	return false;
-}
+	RET( NULL != _pTexCubeInput );
+	RET( NULL != _pTexture );
+	RET( NULL != _pEffect );
+	/*RET( NULL != _pModel );*/
 
-bool HDRRender::OnResize( WPARAM wParam, LPARAM lParam )
-{
-	int width = LOWORD(lParam);
-	int height = HIWORD(lParam);
-
-	glViewport( 0, 0, width, height );
+	_pEffect->Begin();
 	
-	glMatrixMode( GL_PROJECTION );
-	glLoadIdentity();
-	gluPerspective( 90.0, 1.0, 1.0, 1000.0 );
+	glActiveTexture( GL_TEXTURE0 );
+	_pTexture->Bind();
+	glActiveTexture( GL_TEXTURE1 );
+	_pTexCubeInput->BindTex();
 
-	return false;
+	_pEffect->SetUniform( "env", 1 );
+	_pEffect->SetUniform( "tex", 0 );
+	_pEffect->SetUniform( "reflectionFactor", 0.2f );
+	_pEffect->SetUniform( "fresnelBias", 0.2f );
+	_pEffect->SetUniform( "fresnelScale", 1.0f );
+	_pEffect->SetUniform( "fresnelPower", 1.0f );
+	_pEffect->SetUniform( "etaRatio", _etaRatio.x );	
+	_pEffect->SetUniform( "eyePos", _camera.GetEyePos() );
+	_pEffect->SetUniform( "etaRatioRGB", _etaRatio );
+	_pEffect->SetUniform( "matColor", _matColor );
+	
+	if ( _bTrimesh )
+		RenderTrimesh();
+	else
+		RenderGLMMesh();
+
+	_pEffect->End();
+
+	glActiveTexture(GL_TEXTURE0);
+}
+
+void HDRRender::RenderTrimesh( void )
+{
+	GLsizei stride = sizeof(TriMesh::Vertex);
+	glVertexPointer(3, GL_FLOAT, stride, _pMesh->getVertex(0).p);
+	glNormalPointer(GL_FLOAT, stride, _pMesh->getVertex(0).n);
+	glTexCoordPointer(2, GL_FLOAT, stride, &_pMesh->getVertex(0).u);
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	glDrawArrays(GL_TRIANGLES, 0, _pMesh->getNumVertices());
+
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);	
+}
+
+void HDRRender::RenderGLMMesh( void )
+{
+	GLuint mode = GLM_NONE; //reset mode
+	bool smooth = true;
+	bool two_sided =false;
+	bool material = false;
+	bool textured = false;
+
+	if(smooth) mode = mode | GLM_SMOOTH;
+	else mode = mode | GLM_FLAT;
+
+	if(two_sided) mode = mode | GLM_2_SIDED;
+
+	if(material) mode = mode | GLM_MATERIAL;
+	else mode = mode | GLM_COLOR;
+
+	if(textured && material) mode = mode | GLM_TEXTURE;
+
+	glPushMatrix();
+		glScalef( 2.0f, 2.0f, 2.0f );
+		glmDraw( _pModel, mode ); 
+	glPopMatrix();
 }

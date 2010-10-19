@@ -56,7 +56,7 @@ public:
 	// vec3 functions
 	friend float	vec3Dot(const Vector3 &v1, const Vector3 &v2);
 	friend Vector3	vec3Cross(const Vector3 &v1, const Vector3 &v2);
-	friend Vector3	vec3Transform(const Vector3 &v, const Matrix4 &m);
+	friend Vector3	vec3Transform(const Vector3 &v, const Matrix4 &m);	
 
 	// Constants
 	static const Vector3 ZERO;

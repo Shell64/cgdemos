@@ -6,7 +6,7 @@ class ShaderObject
 public:
 	static int ReadSahderFile( const char* file, char*& code );
 	
-	ShaderObject( int type, const char* source, bool is_file = false );
+	ShaderObject( int type, const char* source, bool is_file = true );
 	
 	~ShaderObject( );
 

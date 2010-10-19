@@ -10,9 +10,9 @@ public:
 
 	virtual ~GLTexImage(void);
 
-	void BindTex();
+	void Bind();
 
-	void UnbindTex();
+	void Unbind();
 
 	void DrawQuad();
 

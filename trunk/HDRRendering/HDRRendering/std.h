@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <exception>
 #include <cmath>
+#include <string>
 
 #include "IL/il.h"
 #include "IL/ilu.h"
@@ -35,6 +36,14 @@
 		delete p; \
 		p = NULL; \
 	}
+
+typedef unsigned char	uchar;
+typedef unsigned char	uint8;
+typedef signed char		sint8;
+typedef unsigned short	uint16;
+typedef short			sint16;
+typedef unsigned int	uint32;
+typedef int				sint32;
 
 #else
 #endif//__STD_H__

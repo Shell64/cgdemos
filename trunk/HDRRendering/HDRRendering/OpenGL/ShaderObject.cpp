@@ -4,7 +4,7 @@
 #include "glErrorUtil.h"
 #include "ShaderObject.h"
 
-ShaderObject::ShaderObject( int type, const char* source, bool is_file /*= false */ )
+ShaderObject::ShaderObject( int type, const char* source, bool is_file /*= true */ )
 : m_type( type ), m_is_compiled( false ), m_shaderID( 0 )
 {
 	if ( NULL == source ) return;

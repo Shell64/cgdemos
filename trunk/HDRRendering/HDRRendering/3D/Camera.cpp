@@ -2,44 +2,60 @@
 #include "3d.h"
 
 
-//_right = cross( _look, _up )
-Camera::Camera( const Vector3& pos )
-	: _pos( pos ), _look( 0.f, 0.f, -1.f ),
-	_up( 0.f, 1.f, 0.f ),
-	_right( 1.f, 0.f, 0.f )
-{		
+void CameraBase::Pitch( float angle )
+{
+	this->rotate( _right, _look, angle );
+	this->updateUp();
 }
 
-Camera::~Camera()
+void CameraBase::Yaw( float angle )
 {
+	this->rotate( _up, _right, angle );	
+	this->updateLook();
 }
 
-void Camera::Strafe( float units )
+void CameraBase::Roll( float angle )
 {
-	_pos += _right * units;
+	this->rotate( _look, _up, angle );
+	this->updateRight();
 }
 
-void Camera::Fly( float units )
+CameraBase::~CameraBase( void )
 {
-	_pos += _up * units;
-}
 
-void Camera::Walk( float units )
-{
-	_pos += _look * units;
 }
+////_right = cross( _look, _up )
+//Camera::Camera( const Vector3& pos )
+//	: _eyePos( pos ), _look( 0.f, 0.f, -1.f ),
+//	_up( 0.f, 1.f, 0.f ),
+//	_right( 1.f, 0.f, 0.f )
+//{
+//}
+//
+//Camera::~Camera()
+//{
+//}
+//
+//void Camera::Strafe( float units )
+//{
+//	_eyePos += _right * units;
+//}
+//
+//void Camera::Fly( float units )
+//{
+//	_eyePos += _up * units;
+//}
+//
+//void Camera::Walk( float units )
+//{
+//	_eyePos += _look * units;
+//}
+//
+//void Camera::SetCamera( const Vector3& look, const Vector3& up )
+//{
+//	this->SetLook( look );
+//	this->SetUp( up );
+//	this->updateRight();
+//}
 
-void Camera::Pitch( float angle )
-{
-	this->Rotate( _right, _look, _up, angle );	
-}
 
-void Camera::Yaw( float angle )
-{
-	this->Rotate( _up, _right, _look, angle );	
-}
-
-void Camera::Roll( float angle )
-{
-	this->Rotate( _look, _up, _right, angle );
-}
