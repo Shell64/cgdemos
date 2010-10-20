@@ -16,9 +16,9 @@ public:
 
 	void Unbind( void );
 
-	bool Initialize( int width, int height, GLint iformat = GL_RGBA32F );
+	bool Initialize( int width, int height, GLint iformat = GL_RGBA16F );
 
-	bool Initialize( int width[6], int height[6], GLint iformat = GL_RGBA32F );
+	bool Initialize( int width[6], int height[6], GLint iformat = GL_RGBA16F );
 
 protected:
 
@@ -40,7 +40,7 @@ public:
 
 	~GLTexCubeInput( void ) { }
 
-	bool Load( const char* filename, GLint iformat = GL_RGBA32F );
+	bool Load( const char* filename, GLint iformat = GL_RGBA16F );
 
 protected:
 	bool ExtractCubeMap( const char* filename, ILuint* imgIDs );

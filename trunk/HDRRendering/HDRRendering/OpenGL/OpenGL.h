@@ -4,12 +4,11 @@
 #include <gl/glew.h>
 
 #include "../3D/Vector3.h"
-
+#include "FramebufferObject.h"
 #include "ShaderObject.h"
 #include "ProgramGLSL.h"
 #include "GLTexImage.h"
 #include "GLTexCube.h"
-#include "FramebufferObject.h"
 #include "glm_avl.h"
 #include "../Mesh/TriMesh.h"
 #include "../Mesh/TriMeshManager.h"

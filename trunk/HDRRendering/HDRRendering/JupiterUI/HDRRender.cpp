@@ -2,7 +2,7 @@
 #include "../3D/3d.h"
 #include "../OpenGL/OpenGL.h"
 #include "JupiterUI.h"
-
+#include "../Gaussian.h"
 #include "HDRRender.h"
 
 HDRRender::HDRRender( HWND hParentWnd )
@@ -21,15 +21,15 @@ HDRRender::~HDRRender(void)
 	SAFE_RELEASE( _pEffect );
 	SAFE_RELEASE( _pTexture );
 	SAFE_RELEASE( _pModel );
+
+	SAFE_RELEASE( _GK );
 	/*SAFE_RELEASE( _pMesh );*/
 }
 
 bool HDRRender::Initialize( void )
 {
 	V_RET( this->BasicInitialize() );
-
-	glewInit();
-
+	
 	glClearDepth(1.0f);
 	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_DEPTH_TEST);
@@ -57,6 +57,13 @@ bool HDRRender::Initialize( void )
 		glmLinearTexture( _pModel );
 	}
 
+	V_RET( bloomEffect.Load( "shaders/extractBloom.vp", "shaders/extractBloom.fp") );
+	V_RET( blurXEffect.Load( NULL, "shaders/bx.fp" ) );
+	V_RET( blurYEffect.Load( NULL, "shaders/by.fp" ) );
+	V_RET( toneEffect.Load( "shaders/tone.vp", "shaders/tone.fp" ) );
+
+	V_RET( _GK = gaussian1D<float>( 4, 3 ) );
+
 	return true;
 }
 
@@ -75,9 +82,7 @@ bool HDRRender::OnPaint( WPARAM wParam, LPARAM lParam )
 		center.x, center.y, center.z,
 		up.x, up.y, up.z );
 
-	this->RenderSkybox();
-
-	this->RenderMesh();
+	RenderHdr();
 
 	SwapBuffers( _hDC );
 	return true;
@@ -129,6 +134,12 @@ bool HDRRender::OnResize( WPARAM wParam, LPARAM lParam )
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity();
 	gluPerspective( 45.0, width / float( height ), 0.1, 1000.0 );
+
+	rtHdr.Initialize( width, height );
+	rtRgb.Initialize( width, height, GL_RGBA );
+	rtBloom.Initialize( width, height );
+	rtBlurX.Initialize( width, height );
+	rtBlurY.Initialize( width, height );
 
 	return false;
 }
@@ -290,4 +301,73 @@ void HDRRender::RenderGLMMesh( void )
 		glScalef( 2.0f, 2.0f, 2.0f );
 		glmDraw( _pModel, mode ); 
 	glPopMatrix();
+}
+
+void HDRRender::RenderHdr( void )
+{		
+	rtHdr.BeginCapture();
+	glClear( GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT );
+	RenderSkybox();
+	RenderMesh();
+	rtHdr.EndCapture();
+	
+	SaveMVPMatrices();
+	glEnable( GL_TEXTURE_2D );
+	
+	rtBloom.BeginCapture();
+		rtBloom.FitViewport();
+		bloomEffect.Begin();
+		bloomEffect.SetUniform( "tex", 0 );
+		bloomEffect.SetUniform( "brightThreshold", 1.2f );
+		rtHdr.Bind();
+		rtBloom.DrawQuad();
+		bloomEffect.End();
+	rtBloom.EndCapture();
+
+	rtBlurX.BeginCapture();
+		rtBlurX.FitViewport();
+		blurXEffect.Begin();
+		rtBloom.Bind();
+		float stepx = 1.f / rtBlurX.GetTexWidth();
+		blurXEffect.SetUniform( "step", stepx );
+		blurXEffect.SetUniform( "weight", 4, _GK );
+		rtBlurX.DrawQuad();
+		blurXEffect.End();
+	rtBlurX.EndCapture();
+
+	rtBlurY.BeginCapture();
+		rtBlurY.FitViewport();
+		blurYEffect.Begin();
+		rtBlurX.Bind();
+		float stepy = 1.f / rtBlurX.GetTexHeight();
+		blurYEffect.SetUniform( "step", stepy );
+		blurYEffect.SetUniform( "weight", 4, _GK );
+		rtBlurY.DrawQuad();
+		blurXEffect.End();
+	rtBlurY.EndCapture();
+			
+	glActiveTexture( GL_TEXTURE0 );
+	rtHdr.Bind();
+	glActiveTexture( GL_TEXTURE1 );
+	rtBlurY.Bind();
+	toneEffect.Begin();
+	toneEffect.SetUniform("brightThreshold", 1.0f );
+	toneEffect.SetUniform("bloomFactor", 0.9f );
+	toneEffect.SetUniform("exposure", 1.5f );
+	toneEffect.SetUniform("tex", 0);
+	toneEffect.SetUniform("bloom", 1);
+	rtHdr.DrawQuad();
+	toneEffect.End();
+	glActiveTexture( GL_TEXTURE0 );
+	glBindTexture( GL_TEXTURE_2D, 0 );
+	glActiveTexture( GL_TEXTURE1 );
+	glBindTexture( GL_TEXTURE_2D, 0 );
+	glActiveTexture( GL_TEXTURE0 );
+	
+	RestoreMVPMatrices();
+}
+
+void HDRRender::RenderRgb( void )
+{
+
 }
