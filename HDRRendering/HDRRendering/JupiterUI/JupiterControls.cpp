@@ -31,7 +31,10 @@ bool GLWidget::InitGL( void )
 		MessageBox( NULL, TEXT( "Can't create a GL rendering context" ), GL_WIDGET, MB_OK );
 		return false;
 	}
-	
+
+	V_RET( this->MakeCurrent() );	
+	glewInit();
+
 	return true;
 }
 

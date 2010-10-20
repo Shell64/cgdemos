@@ -349,27 +349,47 @@
 			Name="shaders"
 			>
 			<File
-				RelativePath=".\shaders\BX_FS.glsl"
+				RelativePath=".\shaders\blur.fp"
 				>
 			</File>
 			<File
-				RelativePath=".\shaders\BX_VS.glsl"
+				RelativePath=".\shaders\blur.vp"
 				>
 			</File>
 			<File
-				RelativePath=".\shaders\BY_FS.glsl"
+				RelativePath=".\shaders\bx.fp"
 				>
 			</File>
 			<File
-				RelativePath=".\shaders\BY_VS.glsl"
+				RelativePath=".\shaders\by.fp"
 				>
 			</File>
 			<File
-				RelativePath=".\shaders\DS_FS.glsl"
+				RelativePath=".\shaders\chromaticDispersion.fp"
 				>
 			</File>
 			<File
-				RelativePath=".\shaders\DS_VS.glsl"
+				RelativePath=".\shaders\chromaticDispersion.vp"
+				>
+			</File>
+			<File
+				RelativePath=".\shaders\ds.fp"
+				>
+			</File>
+			<File
+				RelativePath=".\shaders\extractBloom.fp"
+				>
+			</File>
+			<File
+				RelativePath=".\shaders\extractBloom.vp"
+				>
+			</File>
+			<File
+				RelativePath=".\shaders\fresnel.fp"
+				>
+			</File>
+			<File
+				RelativePath=".\shaders\fresnel.vp"
 				>
 			</File>
 			<File
@@ -381,11 +401,31 @@
 				>
 			</File>
 			<File
-				RelativePath=".\shaders\TM_FS.glsl"
+				RelativePath=".\shaders\reflectTex.fp"
 				>
 			</File>
 			<File
-				RelativePath=".\shaders\TM_VS.glsl"
+				RelativePath=".\shaders\reflectTex.vp"
+				>
+			</File>
+			<File
+				RelativePath=".\shaders\refract.fp"
+				>
+			</File>
+			<File
+				RelativePath=".\shaders\refract.vp"
+				>
+			</File>
+			<File
+				RelativePath=".\shaders\tm.fp"
+				>
+			</File>
+			<File
+				RelativePath=".\shaders\tone.fp"
+				>
+			</File>
+			<File
+				RelativePath=".\shaders\tone.vp"
 				>
 			</File>
 		</Filter>

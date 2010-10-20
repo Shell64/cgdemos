@@ -31,6 +31,7 @@ private:
 
 	GLTexInput* m_pHdrTex;	
 	GLTexImage* m_pDSTex;
+	GLTexImage* m_pFullTex;
 	GLTexImage* m_pBlurXTex;
 	GLTexImage* m_pBlurYTex;
 	float* m_GK;	

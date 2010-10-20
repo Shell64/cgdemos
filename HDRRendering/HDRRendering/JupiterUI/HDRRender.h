@@ -31,11 +31,29 @@ protected:
 	
 	void RenderGLMMesh( void );
 
+	void RenderHdr( void );
+
+	void RenderRgb( void );
+
 protected:
 	OrbitCamera _camera;
 	GLTexCubeInput* _pTexCubeInput;
 	EffectGLSL* _pEffect;
 	GLTexInput* _pTexture;
+
+	GLTexAttachment rtRgb;
+	GLTexAttachment rtHdr;
+	GLTexAttachment rtBloom;
+	GLTexAttachment rtBlurX;
+	GLTexAttachment rtBlurY;
+
+	EffectGLSL bloomEffect;
+	EffectGLSL blurXEffect;
+	EffectGLSL blurYEffect;
+	EffectGLSL toneEffect;
+
+	float* _GK;
+
 	Vector3 _etaRatio;
 	Color _matColor;
 

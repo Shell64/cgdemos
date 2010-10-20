@@ -13,7 +13,7 @@ public:
 	GlobalUtil(void);
 	~GlobalUtil(void);
 
-	static void SaveFrame( const char* filename );
+	static void SaveFrame( const char* filename );	
 };
 
 #endif//__GLOBAL_UTIL_H__

@@ -4,7 +4,6 @@
 
 #include "GlobalUtil.h"
 #include "glErrorUtil.h"
-#include "framebufferObject.h"
 #include "ShaderObject.h"
 #include "ProgramGLSL.h"
 #include "GLTexImage.h"
@@ -158,6 +157,18 @@ bool GLTexImage::EndInitialize( void )
 	return _bIsValid =true;
 }
 
+void GLTexImage::Save( const char* filename )
+{
+	this->Bind();
+	float* data = new float[ 4 * m_texWidth * m_texHeight ];
+	glGetTexImage( GlobalUtil::s_texTarget, 0, GL_RGBA, GL_FLOAT, data );
+	ilInit();
+	ILuint id = ilGenImage();
+	ilTexImage( m_texWidth, m_texHeight, 1, 4, IL_RGBA, IL_FLOAT, data );
+	ilSaveImage( filename );
+	ilDeleteImage(id);
+}
+
 /************************************************************************
  * class GLTexInput begin
  ************************************************************************/
@@ -239,6 +250,144 @@ bool GLTexInput::LoadFile( const char* filename, GLuint& imId )
 		ss << "failed to load file " << filename;
 		LogError( ss.str() );
 		return false;
+	}
+	return true;
+}
+
+bool GLTexFBO::Initialize( int width, int height, GLuint iformat /*= GL_RGBA16F_ARB */ )
+{
+	V_RET( GLTexImage::Initialize( width, height, iformat, GL_RGBA, GL_UNSIGNED_BYTE, NULL ) );		
+	//static GLuint depth_rb = 
+	_fbo.Bind();
+	this->AttachToFBO( 0 );
+
+	glGenRenderbuffersEXT( 1, &_depthRB );
+	glBindRenderbufferEXT( GL_RENDERBUFFER_EXT, _depthRB );
+	glRenderbufferStorageEXT( GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, width, height );
+	glFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, _depthRB );
+
+	bool ret = true;
+	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+	switch( status )
+	{
+	case GL_FRAMEBUFFER_COMPLETE_EXT:
+		break;
+	default:
+		LogError( "frame buffer is incomplete");
+		ret = false;
+	}
+
+	FramebufferObject::Disable();
+	return ret;
+}
+
+void GLTexFBO::BeginCapture()
+{
+	_fbo.Bind();
+}
+
+void GLTexFBO::EndCapture()
+{
+	FramebufferObject::Disable();
+}
+
+GLTexFBO::~GLTexFBO( void )
+{
+	if ( 0 != _depthRB ) {
+		glDeleteRenderbuffers( 1, & _depthRB );
+		_depthRB = 0;
+	}
+}
+
+GLTexFBO::GLTexFBO( void )
+: _depthRB( 0 )
+{
+	
+}
+
+FramebufferObject* GLTexAttachment::s_pFBO = NULL;
+
+int GLTexAttachment::s_count = 0;
+
+GLuint GLTexAttachment::s_depthRB = 0;
+
+GLTexAttachment::GLTexAttachment( int i /*= 0 */ )
+: _attachID( 0 )
+{
+	++s_count;
+}
+
+GLTexAttachment::~GLTexAttachment( void )
+{
+	--s_count;
+	if ( 0 == s_count )
+	{
+		ReleaseeFbo();
+	}
+}
+
+bool GLTexAttachment::Initialize( int width, int height, 
+								 GLuint iformat /*= GL_RGBA16F_ARB */ )
+{
+	V_RET( InitFbo( width, height ) );
+	V_RET( GLTexImage::Initialize( width, height, iformat,
+		GL_RGBA, GL_UNSIGNED_BYTE, 0 ) );
+	this->AttachToFBO( _attachID );
+
+	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+	switch( status )
+	{
+	case GL_FRAMEBUFFER_COMPLETE_EXT:
+		return true;
+	default:
+		LogError( "fbo creation error");
+		ReleaseeFbo();
+		return false;
+	}	
+}
+
+void GLTexAttachment::BeginCapture( void )
+{
+	if ( NULL == s_pFBO ) {
+		return;
+	}
+	s_pFBO->Bind();
+	this->AttachToFBO( _attachID );
+}
+
+void GLTexAttachment::EndCapture( void )
+{
+	FramebufferObject::Disable();
+}
+
+bool GLTexAttachment::InitFbo( int width /*= 0*/, int height /*= 0 */ )
+{
+	if ( NULL == s_pFBO ) {
+		s_pFBO = new FramebufferObject;
+		s_pFBO->Bind();
+
+		if ( width > 0 && height > 0 ) {
+			glGenRenderbuffersEXT( 1, &s_depthRB );
+			glBindRenderbufferEXT( GL_RENDERBUFFER_EXT, s_depthRB );
+			glRenderbufferStorageEXT( GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, 
+				width, height );
+			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, 
+				GL_RENDERBUFFER_EXT, s_depthRB );
+		}		
+	}
+	else
+	{
+		s_pFBO->Bind();
+	}
+	return true;
+}
+
+bool GLTexAttachment::ReleaseeFbo( void )
+{
+	SAFE_RELEASE( s_pFBO );
+	if ( 0 != s_depthRB ) {
+		glDeleteRenderbuffers( 1, &s_depthRB );
+		s_depthRB = 0;
 	}
 	return true;
 }

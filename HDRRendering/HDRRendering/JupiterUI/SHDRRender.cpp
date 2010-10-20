@@ -3,7 +3,7 @@
 #include "../OpenGL/OpenGL.h"
 #include "JupiterUI.h"
 #include "../Gaussian.h"
-
+#include "../OpenGL/glErrorUtil.h"
 #include "SHDRRender.h"
 
 bool SHDRRender::OnResize( WPARAM wParam, LPARAM lParam )
@@ -28,17 +28,19 @@ bool SHDRRender::OnResize( WPARAM wParam, LPARAM lParam )
 }
 
 bool SHDRRender::OnPaint( WPARAM wParam, LPARAM lParam )
-{
+{	
 	V_RET( _bInitialized );
 	V_RET( this->MakeCurrent() );
 	glClear( GL_COLOR_BUFFER_BIT );
 
-	glEnable(GL_TEXTURE_2D); /* enable texture mapping */	
+	glEnable(GL_TEXTURE_2D); /* enable texture mapping */
+	
 	FramebufferObject fbo;
 	fbo.Bind();
+	//CheckErrorsGL();
 
 	SaveMVPMatrices();	
-
+  
 	//down sample
 	m_pDSTex->AttachToFBO( 0 );	
 	m_pHdrTex->Bind();
@@ -53,8 +55,8 @@ bool SHDRRender::OnPaint( WPARAM wParam, LPARAM lParam )
 
 	m_pBlurXEffect->Begin();
 	m_pBlurXEffect->SetUniform( "Tex", 0 );	
-	float step = 1.f / m_pBlurXTex->GetTexWidth();
-	m_pBlurXEffect->SetUniform( "step", step );
+	float stepx = 1.f / m_pBlurXTex->GetTexWidth();
+	m_pBlurXEffect->SetUniform( "step", stepx );
 	m_pBlurXEffect->SetUniform( "weight", 4, m_GK );	
 	m_pBlurXTex->DrawQuad();
 	m_pBlurXEffect->End();
@@ -63,13 +65,13 @@ bool SHDRRender::OnPaint( WPARAM wParam, LPARAM lParam )
 	m_pBlurYTex->AttachToFBO( 0 );
 	m_pBlurXTex->Bind();
 
-	m_pBlurYEffect->Begin();
-	m_pBlurYEffect->SetUniform( "Tex", 0 );	
-	float sep = 1.f / m_pBlurXTex->GetTexHeight();
-	m_pBlurYEffect->SetUniform( "step", step );
-	m_pBlurYEffect->SetUniform( "weight", 4, m_GK );	
+	//m_pBlurYEffect->Begin();
+	//m_pBlurYEffect->SetUniform( "Tex", 0 );	
+	//float stepy = 1.f / m_pBlurXTex->GetTexHeight();
+	//m_pBlurYEffect->SetUniform( "step", stepy );
+	//m_pBlurYEffect->SetUniform( "weight", 4, m_GK );	
 	m_pBlurYTex->DrawQuad();
-	m_pBlurYEffect->End();
+	//m_pBlurYEffect->End();
 
 	//display
 	FramebufferObject::Disable();
@@ -94,6 +96,10 @@ bool SHDRRender::OnPaint( WPARAM wParam, LPARAM lParam )
 	m_pTonemapingEffect->End();
 
 	glActiveTexture( GL_TEXTURE0 );
+	glEnable(GL_TEXTURE_2D);
+	m_pDSTex->Bind();
+	m_pDSTex->FitViewport();
+	m_pDSTex->DrawQuad();
 
 	SwapBuffers( _hDC );
 
@@ -105,6 +111,7 @@ bool SHDRRender::Initialize()
 	V_RET( this->BasicInitialize() );
 
 	glewInit();
+
 	V_RET( this->InitTexture() );
 	V_RET( this->InitRenderTagets() );
 	V_RET( this->InitShaders() );
@@ -137,6 +144,10 @@ bool SHDRRender::InitRenderTagets( void )
 	int width = m_pHdrTex->GetTexWidth();
 	int height = m_pHdrTex->GetTexHeight();
 
+	V_RET( m_pFullTex = new GLTexImage() );
+	CheckErrorsGL("InitRenderTagets1");
+	this->m_pFullTex->Initialize( width, height );
+	CheckErrorsGL("InitRenderTagets2");
 	V_RET( m_pDSTex = new GLTexImage() );
 	this->m_pDSTex->Initialize( width / 2, height / 2 );
 
@@ -145,6 +156,8 @@ bool SHDRRender::InitRenderTagets( void )
 
 	V_RET( m_pBlurYTex = new GLTexImage() );	
 	this->m_pBlurYTex->Initialize( width / 2, height / 2 );
+
+	CheckErrorsGL("init rt");
 	return true;
 }
 
@@ -152,7 +165,7 @@ bool SHDRRender::InitTexture( void )
 {
 	V_RET( m_pHdrTex = new GLTexInput() );
 	V_RET( m_pHdrTex->Load( "RNL.hdr" ) );
-
+	CheckErrorsGL("InitTexture");
 	return true;
 }
 

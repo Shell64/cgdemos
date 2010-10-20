@@ -22,12 +22,14 @@ public:
 
 	void DetachFBO( int i );
 
-	bool Initialize( int width, int height, GLuint iformat = GL_RGBA32F_ARB,
-		GLuint format = 0, GLuint type = 0, const void* data = NULL );
+	bool Initialize( int width, int height, GLuint iformat = GL_RGBA16F_ARB,
+		GLuint format = GL_RGBA, GLuint type = GL_FLOAT, const void* data = NULL );
 
 	void SetTextureParam();
 
 	void FitViewport();
+
+	void Save( const char* filename );
 
 public:
 	inline GLuint GetTexID() { return m_texID; }
@@ -74,6 +76,50 @@ protected:
 	unsigned char* CreateGrayImage(
 							const unsigned char* img, 
 							int width, int height, int format );
+};
+
+class GLTexFBO : public GLTexImage
+{
+public:
+	GLTexFBO( void );
+
+	~GLTexFBO( void );
+
+	bool Initialize( int width, int height, GLuint iformat = GL_RGBA16F_ARB );
+
+	void BeginCapture();
+
+	void EndCapture();
+
+protected:
+	GLuint _depthRB;
+	FramebufferObject _fbo;
+};
+
+class GLTexAttachment : public GLTexImage
+{
+public:
+	GLTexAttachment( int i = 0 );
+
+	~GLTexAttachment( void );
+
+	bool Initialize( int width, int height, GLuint iformat = GL_RGBA16F_ARB );
+
+	void BeginCapture( void );
+
+	void EndCapture( void );
+
+protected:
+	static bool InitFbo( int width = 0, int height = 0 );
+
+	static bool ReleaseeFbo( void );
+
+protected:
+	int _attachID;
+
+	static FramebufferObject* s_pFBO;
+	static GLuint s_depthRB;
+	static int s_count;
 };
 
 #endif//__TEX_IMAGE_H__
