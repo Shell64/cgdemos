@@ -57,10 +57,10 @@ bool HDRRender::Initialize( void )
 		glmLinearTexture( _pModel );
 	}
 
-	V_RET( bloomEffect.Load( "shaders/extractBloom.vp", "shaders/extractBloom.fp") );
+	V_RET( bloomEffect.Load( NULL, "shaders/extractBloom.fp") );
 	V_RET( blurXEffect.Load( NULL, "shaders/bx.fp" ) );
 	V_RET( blurYEffect.Load( NULL, "shaders/by.fp" ) );
-	V_RET( toneEffect.Load( "shaders/tone.vp", "shaders/tone.fp" ) );
+	V_RET( toneEffect.Load( NULL, "shaders/tone.fp" ) );
 
 	V_RET( _GK = gaussian1D<float>( 4, 3 ) );
 
