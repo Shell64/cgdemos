@@ -37,22 +37,25 @@ protected:
 
 protected:
 	OrbitCamera _camera;
-	GLTexCubeInput* _pTexCubeInput;
-	EffectGLSL* _pEffect;
-	GLTexInput* _pTexture;
+	GLTexCubeInput _texCubeInput;
+	EffectGLSL _reflectEffect;
+	GLTexInput _texInput;
 
-	GLTexAttachment rtRgb;
-	GLTexAttachment rtHdr;
-	GLTexAttachment rtBloom;
-	GLTexAttachment rtBlurX;
-	GLTexAttachment rtBlurY;
+	GLTexAttachment _rtRgb;
+	GLTexAttachment _rtHdr;
+	GLTexAttachment _rtBloom;
+	
+	static const int s_blurPasses = 4;	
+	GLTexAttachment _rtBlurX[s_blurPasses];
+	GLTexAttachment _rtBlurY[s_blurPasses];
 
-	EffectGLSL bloomEffect;
-	EffectGLSL blurXEffect;
-	EffectGLSL blurYEffect;
-	EffectGLSL toneEffect;
+	EffectGLSL _bloomEffect;
+	EffectGLSL _blurXEffect;
+	EffectGLSL _blurYEffect;
+	EffectGLSL _toneEffect;
 
 	float* _GK;
+	static const int s_kRSize = 4;
 
 	Vector3 _etaRatio;
 	Color _matColor;

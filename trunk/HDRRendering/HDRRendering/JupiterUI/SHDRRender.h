@@ -24,16 +24,15 @@ protected:
 	float GetExposure( void );
 
 private:
-	EffectGLSL* m_pDownsampleEffect;
-	EffectGLSL* m_pBlurXEffect;
-	EffectGLSL* m_pBlurYEffect;
-	EffectGLSL* m_pTonemapingEffect;
+	EffectGLSL _downSampleEffect;
+	EffectGLSL _blurXEffect;
+	EffectGLSL _blurYEffect;
+	EffectGLSL _toneEffect;
 
-	GLTexInput* m_pHdrTex;	
-	GLTexImage* m_pDSTex;
-	GLTexImage* m_pFullTex;
-	GLTexImage* m_pBlurXTex;
-	GLTexImage* m_pBlurYTex;
+	GLTexInput _hdrTex;	
+	GLTexFBO _rtDownsample;
+	GLTexFBO _rtBlurX;
+	GLTexFBO _rtBlurY;
 	float* m_GK;	
 };
 

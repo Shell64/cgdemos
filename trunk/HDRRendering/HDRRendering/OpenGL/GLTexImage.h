@@ -14,13 +14,11 @@ public:
 
 	void DrawQuad();
 
+	void DrawQuadLeft();
+
+	void DrawQuadRight();
+
 	void DrawQuad( int x1, int y1, int x2, int y2 );
-
-	void DrawImage( );
-
-	void AttachToFBO( int i );
-
-	void DetachFBO( int i );
 
 	bool Initialize( int width, int height, GLuint iformat = GL_RGBA16F_ARB,
 		GLuint format = GL_RGBA, GLuint type = GL_FLOAT, const void* data = NULL );
@@ -34,41 +32,41 @@ public:
 public:
 	inline GLuint GetTexID() { return m_texID; }
 
-	inline int GetImageWidth() { return m_imageWidth; }
-
-	inline int GetImageHeight() { return m_imageHeight; }
-
 	inline int GetTexWidth() { return m_texWidth; }
 
 	inline int GetTexHeight() { return m_texHeight; }
-
-	inline int GetDrawWidth() { return m_drawWidth; }
-
-	inline int GetDrawHeight() { return m_drawHeight; }
 
 	inline GLuint GetFormat() { return m_format; }
 
 protected:
 	bool BeginInitialize( void );
 
-	bool EndInitialize( void );
+	bool EndInitialize( int width, int height, GLuint iformat );
+
+	void Release( void );
 
 protected:
 	GLuint m_texID;
-	int m_imageWidth;
-	int m_imageHeight;
 	int m_texWidth;
 	int m_texHeight;
-	int m_drawWidth;
-	int m_drawHeight;
 	GLuint m_format;
 	bool _bIsValid;
 };
 
+
+/************************************************************************
+ * function: load image from file as a texture image
+ ************************************************************************/
 class GLTexInput : public GLTexImage
 {
 public:
-	bool Load( const char* filename, GLuint iformat = GL_RGBA, bool color = true );
+	/************************************************************************
+	 *@param filename: the name of the file
+	 *@param iformat: the format of the GLTexture2D
+	 *@return value: false--load file fail or initialize texture fail, true--otherwise
+	 *@description: latest load operation will descard prvious data
+	 ************************************************************************/	
+	bool Load( const char* filename, GLuint iformat = GL_RGBA );
 
 protected:
 	bool LoadFile( const char* filename, GLuint& imID );
@@ -78,7 +76,34 @@ protected:
 							int width, int height, int format );
 };
 
-class GLTexFBO : public GLTexImage
+class GLTexFBOBase : public GLTexImage
+{
+public:
+	virtual ~GLTexFBOBase( void ) = NULL;
+
+	virtual bool Initialize( int width, int height, GLuint iformat ) = NULL;
+
+	virtual void BeginCapture() = NULL;
+
+	static void EndCapture();
+
+	static void ClearBuffer( GLbitfield color = GL_COLOR_BUFFER_BIT, 
+		GLbitfield depth = GL_DEPTH_BUFFER_BIT,
+		GLbitfield stencil = 0 );
+
+protected:
+	bool EndInitialize( void );
+
+	static void InitDepthRenderBuffer( int width, int height, GLuint& depthRB );
+
+	void AttachToFBO( int i );
+
+	void DetachFBO( int i );
+
+
+};
+
+class GLTexFBO : public GLTexFBOBase
 {
 public:
 	GLTexFBO( void );
@@ -89,25 +114,21 @@ public:
 
 	void BeginCapture();
 
-	void EndCapture();
-
 protected:
 	GLuint _depthRB;
 	FramebufferObject _fbo;
 };
 
-class GLTexAttachment : public GLTexImage
+class GLTexAttachment : public GLTexFBOBase
 {
 public:
-	GLTexAttachment( int i = 0 );
+	GLTexAttachment( void );
 
 	~GLTexAttachment( void );
 
 	bool Initialize( int width, int height, GLuint iformat = GL_RGBA16F_ARB );
 
-	void BeginCapture( void );
-
-	void EndCapture( void );
+	void BeginCapture( void );	
 
 protected:
 	static bool InitFbo( int width = 0, int height = 0 );
@@ -115,7 +136,6 @@ protected:
 	static bool ReleaseeFbo( void );
 
 protected:
-	int _attachID;
 
 	static FramebufferObject* s_pFBO;
 	static GLuint s_depthRB;

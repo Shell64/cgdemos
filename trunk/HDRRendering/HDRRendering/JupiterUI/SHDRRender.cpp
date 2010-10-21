@@ -33,45 +33,42 @@ bool SHDRRender::OnPaint( WPARAM wParam, LPARAM lParam )
 	V_RET( this->MakeCurrent() );
 	glClear( GL_COLOR_BUFFER_BIT );
 
-	glEnable(GL_TEXTURE_2D); /* enable texture mapping */
-	
-	FramebufferObject fbo;
-	fbo.Bind();
-	//CheckErrorsGL();
+	glEnable(GL_TEXTURE_2D); /* enable texture mapping */	
 
 	SaveMVPMatrices();	
   
 	//down sample
-	m_pDSTex->AttachToFBO( 0 );	
-	m_pHdrTex->Bind();
-	m_pDownsampleEffect->Begin();
-	m_pDownsampleEffect->SetUniform( "Tex", 0 );
-	m_pDSTex->DrawQuad();
-	m_pDownsampleEffect->End();
+	_rtDownsample.BeginCapture();
+	_hdrTex.Bind();
+	_downSampleEffect.Begin();
+	_downSampleEffect.SetUniform( "Tex", 0 );
+	_rtDownsample.DrawQuad();
+	_downSampleEffect.End();
+	_rtDownsample.EndCapture();
 
 	//blur x
-	m_pBlurXTex->AttachToFBO( 0 );
-	m_pDSTex->Bind();
-
-	m_pBlurXEffect->Begin();
-	m_pBlurXEffect->SetUniform( "Tex", 0 );	
-	float stepx = 1.f / m_pBlurXTex->GetTexWidth();
-	m_pBlurXEffect->SetUniform( "step", stepx );
-	m_pBlurXEffect->SetUniform( "weight", 4, m_GK );	
-	m_pBlurXTex->DrawQuad();
-	m_pBlurXEffect->End();
+	_rtBlurX.BeginCapture();
+	_rtDownsample.Bind();
+	_blurXEffect.Begin();
+	_blurXEffect.SetUniform( "Tex", 0 );	
+	float stepx = 1.f / _rtBlurX.GetTexWidth();
+	_blurXEffect.SetUniform( "step", stepx );
+	_blurXEffect.SetUniform( "weight", 4, m_GK );	
+	_rtBlurX.DrawQuad();
+	_blurXEffect.End();
+	_rtBlurX.EndCapture();
 
 	//blur y
-	m_pBlurYTex->AttachToFBO( 0 );
-	m_pBlurXTex->Bind();
-
-	//m_pBlurYEffect->Begin();
-	//m_pBlurYEffect->SetUniform( "Tex", 0 );	
-	//float stepy = 1.f / m_pBlurXTex->GetTexHeight();
-	//m_pBlurYEffect->SetUniform( "step", stepy );
-	//m_pBlurYEffect->SetUniform( "weight", 4, m_GK );	
-	m_pBlurYTex->DrawQuad();
-	//m_pBlurYEffect->End();
+	_rtBlurY.BeginCapture();
+	_rtBlurX.Bind();
+	_blurYEffect.Begin();
+	_blurYEffect.SetUniform( "Tex", 0 );	
+	float stepy = 1.f / _rtBlurX.GetTexHeight();
+	_blurYEffect.SetUniform( "step", stepy );
+	_blurYEffect.SetUniform( "weight", 4, m_GK );	
+	_rtBlurY.DrawQuad();
+	_blurYEffect.End();
+	_rtBlurY.EndCapture();
 
 	//display
 	FramebufferObject::Disable();
@@ -80,26 +77,23 @@ bool SHDRRender::OnPaint( WPARAM wParam, LPARAM lParam )
 	RestoreMVPMatrices();
 
 	glActiveTexture( GL_TEXTURE0 );	
-	m_pHdrTex->Bind();
+	_hdrTex.Bind();
 	glActiveTexture( GL_TEXTURE1 );	
-	m_pBlurYTex->Bind();
+	_rtBlurY.Bind();
 
-	m_pTonemapingEffect->Begin();
-	m_pTonemapingEffect->SetUniform( "fullTex", 0 );
-	m_pTonemapingEffect->SetUniform( "bluredTex", 1 );
-	m_pTonemapingEffect->SetUniform( "exposureLevel", GetExposure() );
+	_toneEffect.Begin();
+	_toneEffect.SetUniform( "fullTex", 0 );
+	_toneEffect.SetUniform( "bluredTex", 1 );
+	_toneEffect.SetUniform( "exposureLevel", GetExposure() );
 
-	int left = -m_pHdrTex->GetTexWidth()/2;
-	int bottom = -m_pHdrTex->GetTexHeight()/2;
-	m_pHdrTex->DrawQuad( left, bottom, -left, -bottom );
+	int left = -_hdrTex.GetTexWidth()/2;
+	int bottom = -_hdrTex.GetTexHeight()/2;
+	_hdrTex.DrawQuad( left, bottom, -left, -bottom );
 
-	m_pTonemapingEffect->End();
+	_toneEffect.End();
 
 	glActiveTexture( GL_TEXTURE0 );
 	glEnable(GL_TEXTURE_2D);
-	m_pDSTex->Bind();
-	m_pDSTex->FitViewport();
-	m_pDSTex->DrawQuad();
 
 	SwapBuffers( _hDC );
 
@@ -123,62 +117,40 @@ bool SHDRRender::Initialize()
 }
 
 bool SHDRRender::InitShaders( void )
-{
-	V_RET( this->m_pDownsampleEffect = new EffectGLSL( "down sample" ) );	
-	V_RET( this->m_pDownsampleEffect->Load( NULL, "shaders/ds.fp" ) );
+{	
+	V_RET( this->_downSampleEffect.Load( NULL, "shaders/ds.fp" ) );
 
-	V_RET( this->m_pBlurXEffect = new EffectGLSL( "blur X" ) );
-	V_RET( this->m_pBlurXEffect->Load( NULL, "shaders/bx.fp" ) );	
+	V_RET( this->_blurXEffect.Load( NULL, "shaders/bx.fp" ) );	
 
-	V_RET( this->m_pBlurYEffect = new EffectGLSL( "blur Y" ) );
-	V_RET( this->m_pBlurYEffect->Load( NULL, "shaders/by.fp" ) );
+	V_RET( this->_blurYEffect.Load( NULL, "shaders/by.fp" ) );
 
-	V_RET( this->m_pTonemapingEffect = new EffectGLSL( "tone mapping" ) );
-	V_RET( this->m_pTonemapingEffect->Load( NULL, "shaders/tm.fp" ) );
+	V_RET( this->_toneEffect.Load( NULL, "shaders/tm.fp" ) );
 
 	return true;
 }
 
 bool SHDRRender::InitRenderTagets( void )
 {	
-	int width = m_pHdrTex->GetTexWidth();
-	int height = m_pHdrTex->GetTexHeight();
+	int width = _hdrTex.GetTexWidth();
+	int height = _hdrTex.GetTexHeight();
 
-	V_RET( m_pFullTex = new GLTexImage() );
-	CheckErrorsGL("InitRenderTagets1");
-	this->m_pFullTex->Initialize( width, height );
-	CheckErrorsGL("InitRenderTagets2");
-	V_RET( m_pDSTex = new GLTexImage() );
-	this->m_pDSTex->Initialize( width / 2, height / 2 );
-
-	V_RET( m_pBlurXTex = new GLTexImage() );	
-	this->m_pBlurXTex->Initialize( width / 2, height / 2  );
-
-	V_RET( m_pBlurYTex = new GLTexImage() );	
-	this->m_pBlurYTex->Initialize( width / 2, height / 2 );
-
-	CheckErrorsGL("init rt");
+	V_RET( _rtDownsample.Initialize( width / 2, height / 2 ) );
+	
+	V_RET( _rtBlurX.Initialize( width / 2, height / 2  ) );
+	
+	V_RET( _rtBlurY.Initialize( width / 2, height / 2 ) );
+	
 	return true;
 }
 
 bool SHDRRender::InitTexture( void )
-{
-	V_RET( m_pHdrTex = new GLTexInput() );
-	V_RET( m_pHdrTex->Load( "RNL.hdr" ) );
-	CheckErrorsGL("InitTexture");
+{	
+	V_RET( _hdrTex.Load( "RNL.hdr" ) );
 	return true;
 }
 
 SHDRRender::SHDRRender( HWND hParentWnd )
 :GLWidget( hParentWnd ),
-m_pDownsampleEffect( NULL ),
-m_pBlurXEffect( NULL ),
-m_pBlurYEffect( NULL ),
-m_pTonemapingEffect( NULL ),
-m_pHdrTex( NULL ),
-m_pDSTex( NULL ),
-m_pBlurXTex( NULL ),
-m_pBlurYTex( NULL ),
 m_GK( NULL )
 {
 
@@ -186,17 +158,6 @@ m_GK( NULL )
 
 SHDRRender::~SHDRRender()
 {
-	SAFE_RELEASE( m_pDownsampleEffect );
-	SAFE_RELEASE( m_pBlurXEffect );
-	SAFE_RELEASE( m_pBlurYEffect );
-	SAFE_RELEASE( m_pTonemapingEffect );
-
-
-	SAFE_RELEASE( m_pHdrTex );
-	SAFE_RELEASE( m_pDSTex );
-	SAFE_RELEASE( m_pBlurXTex );
-	SAFE_RELEASE( m_pBlurYTex );
-
 	SAFE_RELEASE( m_GK );
 }
 

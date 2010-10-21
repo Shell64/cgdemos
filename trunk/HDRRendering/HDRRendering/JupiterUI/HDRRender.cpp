@@ -7,7 +7,6 @@
 
 HDRRender::HDRRender( HWND hParentWnd )
 :GLWidget( hParentWnd ),_camera( Vector3( 0.f, 0.f, 50.f ) ),
-_pTexCubeInput( NULL ), _pEffect( NULL ), _pTexture( NULL ),
 _bMove( false ), _etaRatio( 0.8f, 0.8f, 0.8f ),
 _matColor( 0.1f, 0.1f, 0.12f ), _pModel( NULL ),
 _pMesh( NULL ), _bTrimesh( true )
@@ -17,13 +16,9 @@ _pMesh( NULL ), _bTrimesh( true )
 
 HDRRender::~HDRRender(void)
 {
-	SAFE_RELEASE( _pTexCubeInput );
-	SAFE_RELEASE( _pEffect );
-	SAFE_RELEASE( _pTexture );
 	SAFE_RELEASE( _pModel );
 
 	SAFE_RELEASE( _GK );
-	/*SAFE_RELEASE( _pMesh );*/
 }
 
 bool HDRRender::Initialize( void )
@@ -35,15 +30,12 @@ bool HDRRender::Initialize( void )
 	glEnable(GL_DEPTH_TEST);
 	glShadeModel(GL_SMOOTH);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-
-	_pTexCubeInput = new GLTexCubeInput();
-	_pTexCubeInput->Load( "uffizi_cross.hdr" );
-
-	_pEffect = new EffectGLSL( "reflect effect" );
-	_pEffect->Load( "shaders/reflect.vp", "shaders/reflect.fp" );
-
-	_pTexture = new GLTexInput();
-	_pTexture->Load( "media/pro.bmp" );	
+	
+	V_RET(_texCubeInput.Load( "uffizi_cross.hdr" ) );
+	
+	V_RET( _reflectEffect.Load( "shaders/reflect.vp", "shaders/reflect.fp" ) );
+	
+	_texInput.Load( "media/pro.bmp" );	
 
 	if ( _bTrimesh ) 
 	{
@@ -57,10 +49,10 @@ bool HDRRender::Initialize( void )
 		glmLinearTexture( _pModel );
 	}
 
-	V_RET( bloomEffect.Load( NULL, "shaders/extractBloom.fp") );
-	V_RET( blurXEffect.Load( NULL, "shaders/bx.fp" ) );
-	V_RET( blurYEffect.Load( NULL, "shaders/by.fp" ) );
-	V_RET( toneEffect.Load( NULL, "shaders/tone.fp" ) );
+	V_RET( _bloomEffect.Load( NULL, "shaders/extractBloom.fp") );
+	V_RET( _blurXEffect.Load( NULL, "shaders/bx.fp" ) );
+	V_RET( _blurYEffect.Load( NULL, "shaders/by.fp" ) );
+	V_RET( _toneEffect.Load( NULL, "shaders/tone.fp" ) );
 
 	V_RET( _GK = gaussian1D<float>( 4, 3 ) );
 
@@ -83,6 +75,7 @@ bool HDRRender::OnPaint( WPARAM wParam, LPARAM lParam )
 		up.x, up.y, up.z );
 
 	RenderHdr();
+	RenderRgb();
 
 	SwapBuffers( _hDC );
 	return true;
@@ -135,11 +128,17 @@ bool HDRRender::OnResize( WPARAM wParam, LPARAM lParam )
 	glLoadIdentity();
 	gluPerspective( 45.0, width / float( height ), 0.1, 1000.0 );
 
-	rtHdr.Initialize( width, height );
-	rtRgb.Initialize( width, height, GL_RGBA );
-	rtBloom.Initialize( width, height );
-	rtBlurX.Initialize( width, height );
-	rtBlurY.Initialize( width, height );
+	_rtHdr.Initialize( width, height );
+	_rtRgb.Initialize( width, height, GL_RGBA );
+	_rtBloom.Initialize( width, height );
+
+	for ( int i = 0; i < s_blurPasses; ++i )
+	{
+		_rtBlurX[ i ].Initialize( width, height );
+		_rtBlurY[ i ].Initialize( width, height );
+		width >>= 1;
+		height >>= 1;
+	}
 
 	return false;
 }
@@ -185,7 +184,7 @@ void HDRRender::RenderSkybox( void )
 	glEnable(GL_TEXTURE_GEN_S);
 	glEnable(GL_TEXTURE_GEN_T);
 	glEnable(GL_TEXTURE_GEN_R);
-	_pTexCubeInput->Bind();
+	_texCubeInput.Bind();
 
 	float s = 500.0f;
 	glBegin(GL_QUADS); 
@@ -227,36 +226,31 @@ void HDRRender::RenderSkybox( void )
 }
 
 void HDRRender::RenderMesh( void )
-{
-	RET( NULL != _pTexCubeInput );
-	RET( NULL != _pTexture );
-	RET( NULL != _pEffect );
-	/*RET( NULL != _pModel );*/
-
-	_pEffect->Begin();
+{	
+	_reflectEffect.Begin();
 	
 	glActiveTexture( GL_TEXTURE0 );
-	_pTexture->Bind();
+	_texInput.Bind();
 	glActiveTexture( GL_TEXTURE1 );
-	_pTexCubeInput->Bind();
+	_texCubeInput.Bind();
 
-	_pEffect->SetUniform( "env", 1 );
-	_pEffect->SetUniform( "tex", 0 );
-	_pEffect->SetUniform( "reflectionFactor", 0.2f );
-	_pEffect->SetUniform( "fresnelBias", 0.2f );
-	_pEffect->SetUniform( "fresnelScale", 1.0f );
-	_pEffect->SetUniform( "fresnelPower", 1.0f );
-	_pEffect->SetUniform( "etaRatio", _etaRatio.x );	
-	_pEffect->SetUniform( "eyePos", _camera.GetEyePos() );
-	_pEffect->SetUniform( "etaRatioRGB", _etaRatio );
-	_pEffect->SetUniform( "matColor", _matColor );
+	_reflectEffect.SetUniform( "env", 1 );
+	_reflectEffect.SetUniform( "tex", 0 );
+	_reflectEffect.SetUniform( "reflectionFactor", 0.2f );
+	_reflectEffect.SetUniform( "fresnelBias", 0.2f );
+	_reflectEffect.SetUniform( "fresnelScale", 1.0f );
+	_reflectEffect.SetUniform( "fresnelPower", 1.0f );
+	_reflectEffect.SetUniform( "etaRatio", _etaRatio.x );	
+	_reflectEffect.SetUniform( "eyePos", _camera.GetEyePos() );
+	_reflectEffect.SetUniform( "etaRatioRGB", _etaRatio );
+	_reflectEffect.SetUniform( "matColor", _matColor );
 	
 	if ( _bTrimesh )
 		RenderTrimesh();
 	else
 		RenderGLMMesh();
 
-	_pEffect->End();
+	_reflectEffect.End();
 
 	glActiveTexture(GL_TEXTURE0);
 }
@@ -305,69 +299,92 @@ void HDRRender::RenderGLMMesh( void )
 
 void HDRRender::RenderHdr( void )
 {		
-	rtHdr.BeginCapture();
-	glClear( GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT );
+	_rtHdr.BeginCapture();
+	_rtHdr.ClearBuffer();
 	RenderSkybox();
 	RenderMesh();
-	rtHdr.EndCapture();
+	_rtHdr.EndCapture();
 	
 	SaveMVPMatrices();
 	glEnable( GL_TEXTURE_2D );
 	
-	rtBloom.BeginCapture();
-		rtBloom.FitViewport();
-		bloomEffect.Begin();
-		bloomEffect.SetUniform( "tex", 0 );
-		bloomEffect.SetUniform( "brightThreshold", 1.2f );
-		rtHdr.Bind();
-		rtBloom.DrawQuad();
-		bloomEffect.End();
-	rtBloom.EndCapture();
+	_rtBloom.BeginCapture();
+		_rtBloom.FitViewport();
+		_bloomEffect.Begin();
+		_bloomEffect.SetUniform( "tex", 0 );
+		_bloomEffect.SetUniform( "brightThreshold", 1.2f );
+		_rtHdr.Bind();
+		_rtBloom.DrawQuad();
+		_bloomEffect.End();
+	_rtBloom.EndCapture();
 
-	rtBlurX.BeginCapture();
-		rtBlurX.FitViewport();
-		blurXEffect.Begin();
-		rtBloom.Bind();
-		float stepx = 1.f / rtBlurX.GetTexWidth();
-		blurXEffect.SetUniform( "step", stepx );
-		blurXEffect.SetUniform( "weight", 4, _GK );
-		rtBlurX.DrawQuad();
-		blurXEffect.End();
-	rtBlurX.EndCapture();
-
-	rtBlurY.BeginCapture();
-		rtBlurY.FitViewport();
-		blurYEffect.Begin();
-		rtBlurX.Bind();
-		float stepy = 1.f / rtBlurX.GetTexHeight();
-		blurYEffect.SetUniform( "step", stepy );
-		blurYEffect.SetUniform( "weight", 4, _GK );
-		rtBlurY.DrawQuad();
-		blurXEffect.End();
-	rtBlurY.EndCapture();
+	GLTexAttachment* prev = &_rtBloom;
+	for ( int i = 0; i < s_blurPasses; ++i ) {
+	_rtBlurX[i].BeginCapture();
+		_rtBlurX[i].FitViewport();
+		_blurXEffect.Begin();
+		prev->Bind();
+		float stepx = 1.f / _rtBlurX[i].GetTexWidth();
+		_blurXEffect.SetUniform( "step", stepx );
+		_blurXEffect.SetUniform( "weight", 4, _GK );
+		_rtBlurX[i].DrawQuad();
+		_blurXEffect.End();
+	_rtBlurX[i].EndCapture();
+	
+	_rtBlurY[i].BeginCapture();
+		_rtBlurY[i].FitViewport();
+		_blurYEffect.Begin();
+		_rtBlurX[i].Bind();
+		float stepy = 1.f / _rtBlurY[i].GetTexHeight();
+		_blurYEffect.SetUniform( "step", stepy );
+		_blurYEffect.SetUniform( "weight", 4, _GK );
+		_rtBlurY[i].DrawQuad();
+		_blurYEffect.End();
+	_rtBlurY[i].EndCapture();
+	prev = &_rtBlurY[i];
+	
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_ONE, GL_ONE );
+		_rtBloom.BeginCapture();
+		_rtBlurY[i].Bind();
+		_rtBloom.FitViewport();
+		_rtBloom.DrawQuad();
+		_rtBloom.EndCapture();
+	glDisable( GL_BLEND );
+	}
 			
 	glActiveTexture( GL_TEXTURE0 );
-	rtHdr.Bind();
+	_rtHdr.Bind();
 	glActiveTexture( GL_TEXTURE1 );
-	rtBlurY.Bind();
-	toneEffect.Begin();
-	toneEffect.SetUniform("brightThreshold", 1.0f );
-	toneEffect.SetUniform("bloomFactor", 0.9f );
-	toneEffect.SetUniform("exposure", 1.5f );
-	toneEffect.SetUniform("tex", 0);
-	toneEffect.SetUniform("bloom", 1);
-	rtHdr.DrawQuad();
-	toneEffect.End();
+	_rtBloom.Bind();
+	_toneEffect.Begin();
+	_toneEffect.SetUniform("brightThreshold", 1.2f );
+	_toneEffect.SetUniform("bloomFactor", 0.5f );
+	_toneEffect.SetUniform("exposure", 1.1f );
+	_toneEffect.SetUniform("tex", 0);
+	_toneEffect.SetUniform("bloom", 1);
+	_rtHdr.DrawQuadRight();
+	_toneEffect.End();
 	glActiveTexture( GL_TEXTURE0 );
 	glBindTexture( GL_TEXTURE_2D, 0 );
 	glActiveTexture( GL_TEXTURE1 );
 	glBindTexture( GL_TEXTURE_2D, 0 );
 	glActiveTexture( GL_TEXTURE0 );
-	
+		
 	RestoreMVPMatrices();
 }
 
 void HDRRender::RenderRgb( void )
-{
+{		
+	_rtRgb.BeginCapture();
+	_rtRgb.ClearBuffer();
+	RenderSkybox();
+	RenderMesh();
+	_rtRgb.EndCapture();
 
+	SaveMVPMatrices();
+	_rtRgb.Bind();
+	_rtRgb.FitViewport();
+	_rtRgb.DrawQuadLeft();
+	RestoreMVPMatrices();
 }
