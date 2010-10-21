@@ -9,20 +9,14 @@
 #include "GLTexImage.h"
 
 GLTexImage::GLTexImage(void)
-: m_drawHeight( 0 ), m_drawWidth( 0 ),
-m_imageWidth( 0 ), m_imageHeight( 0 ),
-m_texWidth( 0 ), m_texHeight( 0 ),
-m_texID( 0 )
+:m_texWidth( 0 ), m_texHeight( 0 ),
+m_texID( 0 ), _bIsValid( false )
 {	
 }
 
 GLTexImage::~GLTexImage(void)
 {
-	if ( m_texID > 0 )
-	{
-		glDeleteTextures( 1, &m_texID );
-		m_texID = 0;
-	}
+	this->Release();
 }
 
 void GLTexImage::Bind()
@@ -64,40 +58,26 @@ void GLTexImage::DrawQuad( int x1, int y1, int x2, int y2 )
 void GLTexImage::DrawQuad()
 {
 	glBegin (GL_QUADS);
-	glTexCoord2i ( 0, 0 );                     glVertex2i( 0, 0 ); 
-	glTexCoord2i ( 0, 1  );         glVertex2i( 0, m_drawHeight ); 
-	glTexCoord2i ( 1, 1 );			glVertex2i( m_drawWidth, m_drawHeight ); 
-	glTexCoord2i ( 1, 0 );           glVertex2i( m_drawWidth, 0 ); 
+	glTexCoord2i ( 0, 0 );          glVertex2i( 0, 0 ); 
+	glTexCoord2i ( 0, 1  );         glVertex2i( 0, m_texHeight ); 
+	glTexCoord2i ( 1, 1 );			glVertex2i( m_texWidth, m_texHeight ); 
+	glTexCoord2i ( 1, 0 );           glVertex2i( m_texWidth, 0 ); 
 	glEnd ();
 	glFlush();
 }
 
-void GLTexImage::AttachToFBO( int i )
-{
-	glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, 
-		i + GL_COLOR_ATTACHMENT0_EXT, GlobalUtil::s_texTarget, m_texID, 0 );
-}
 
-void GLTexImage::DetachFBO( int i )
-{
-	glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT,
-		i + GL_COLOR_ATTACHMENT0_EXT, GlobalUtil::s_texTarget, 0, 0 );
-}
 
 bool GLTexImage::Initialize( int width, int height, GLuint iformat /*= GL_RGBA32F_ARB*/, 
 							GLuint format /*= 0*/, GLuint type /*= 0*/, const void* data /*= NULL */ )
 {
-	V_RET( BeginInitialize() );
-
-	m_texWidth = m_imageWidth = m_drawWidth = width;
-	m_texHeight = m_imageHeight = m_drawHeight = height;	
-	m_format = iformat;
+	V_RET( BeginInitialize( ) );
 
 	this->SetTextureParam();
 
 	glTexImage2D( GlobalUtil::s_texTarget, 0, iformat, width, height, 0, format, type, data );
 
-	return EndInitialize();	
+	return EndInitialize( width, height, iformat );	
 }
 
 void GLTexImage::SetTextureParam()
@@ -107,54 +87,50 @@ void GLTexImage::SetTextureParam()
 	glTexParameteri( GlobalUtil::s_texTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE ); 
 	glTexParameteri( GlobalUtil::s_texTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR ); 
 	glTexParameteri( GlobalUtil::s_texTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); 
-	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
-}
-
-void GLTexImage::DrawImage( )
-{
-	/* send elapsed time to shaders*/	
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glEnable( GL_TEXTURE_RECTANGLE_ARB );
-	glBindTexture( GlobalUtil::s_texTarget, m_texID );
-
-	glBegin(GL_QUADS);
-	{
-		glTexCoord2i( 0, 0 );                      glVertex2i( 0, m_drawHeight );
-		glTexCoord2i( m_drawWidth, 0 );            glVertex2i( m_drawWidth, m_drawHeight );
-		glTexCoord2i( m_drawWidth, m_drawHeight ); glVertex2i( m_drawWidth, 0 );
-		glTexCoord2i( 0, m_drawHeight );           glVertex2i( 0, 0 );
-	}
-	glEnd();
-	glFlush();
+	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );	
 }
 
 void GLTexImage::FitViewport( )
 {	
-	glViewport( 0, 0, m_drawWidth, m_drawHeight ); 
+	glViewport( 0, 0, m_texWidth, m_texHeight ); 
 	glMatrixMode( GL_PROJECTION );    
 	glLoadIdentity();
-	glOrtho( 0, m_drawWidth, 0, m_drawHeight,  0, 1 );
+	glOrtho( 0, m_texWidth, 0, m_texHeight,  0, 1 );
 	glMatrixMode( GL_MODELVIEW );     
 	glLoadIdentity();
 }
 
 bool GLTexImage::BeginInitialize( void )
-{
-	if( 0 == m_texID ) glGenTextures( 1, &m_texID );
-	else
+{	
+	CheckErrorsGL( "BeginInitialize:" );
+	if ( m_texID > 0 )
 	{
-		LogError( "texture already initialized" );
-		return false;
+		this->Release();
 	}
-	glBindTexture( GlobalUtil::s_texTarget, m_texID );
+	glGenTextures( 1, &m_texID );
+	glBindTexture( GlobalUtil::s_texTarget, m_texID );	
 	return true;
 }
 
-bool GLTexImage::EndInitialize( void )
+bool GLTexImage::EndInitialize( int width, int height, GLuint iformat )
 {
 	glBindTexture( GlobalUtil::s_texTarget, 0 );
-	return _bIsValid =true;
+
+	GLenum err = glGetError();
+	if ( GL_NO_ERROR != err )
+	{
+		const char *errstr;
+		errstr = reinterpret_cast<const char *>(gluErrorString(err));
+		LogError( errstr );
+		return false;
+	}
+
+	m_texWidth = width;
+	m_texHeight = height;
+	m_format = iformat;
+	_bIsValid = true;
+
+	return true;
 }
 
 void GLTexImage::Save( const char* filename )
@@ -165,17 +141,51 @@ void GLTexImage::Save( const char* filename )
 	ilInit();
 	ILuint id = ilGenImage();
 	ilTexImage( m_texWidth, m_texHeight, 1, 4, IL_RGBA, IL_FLOAT, data );
-	ilSaveImage( filename );
+	ilSaveImage( filename );	
 	ilDeleteImage(id);
+	SAFE_RELEASE( data );
+}
+
+void GLTexImage::DrawQuadLeft()
+{
+	glBegin (GL_QUADS);
+	glTexCoord2f ( 0, 0 );          glVertex2i( 0, 0 ); 
+	glTexCoord2f ( 0, 1  );         glVertex2i( 0, m_texHeight ); 
+	glTexCoord2f ( 0.5, 1 );			glVertex2i( m_texWidth/2, m_texHeight ); 
+	glTexCoord2f ( 0.5, 0 );           glVertex2i( m_texWidth/2, 0 ); 
+	glEnd ();
+	glFlush();
+}
+
+void GLTexImage::DrawQuadRight()
+{
+	glBegin (GL_QUADS);
+	glTexCoord2f ( 0.5, 0 );          glVertex2i( m_texWidth/2, 0 ); 
+	glTexCoord2f ( 0.5, 1  );         glVertex2i( m_texWidth/2, m_texHeight ); 
+	glTexCoord2f ( 1, 1 );			glVertex2i( m_texWidth, m_texHeight ); 
+	glTexCoord2f ( 1, 0 );           glVertex2i( m_texWidth, 0 ); 
+	glEnd ();
+	glFlush();
+}
+
+void GLTexImage::Release( void )
+{
+	if ( m_texID > 0 )
+	{
+		glDeleteTextures( 1, &m_texID );
+		m_texID = 0;
+		m_texWidth = m_texHeight = 0;
+		m_format = 0;
+		_bIsValid = false;
+	}
 }
 
 /************************************************************************
  * class GLTexInput begin
  ************************************************************************/
 bool GLTexInput::Load( const char* filename, 
-								   GLuint iformat /*= GL_RGBA*/,
-								   bool color /*= true */ )
-{
+								   GLuint iformat /*= GL_RGBA*/ )
+{	
 	GLuint imId = 0;
 	V_RET( LoadFile( filename, imId ) );
 
@@ -184,28 +194,10 @@ bool GLTexInput::Load( const char* filename,
 	int format = ilGetInteger( IL_IMAGE_FORMAT );	
 	int type = ilGetInteger( IL_IMAGE_TYPE );	
 
-	bool ret = false;
-	if ( IL_LUMINANCE == format || IL_LUMINANCE_ALPHA == format )
-	{
-		ret = this->Initialize( width, height, iformat, format, type, ilGetData() );
-	}
-	else if ( color )
-	{
-		ret = this->Initialize( width, height, iformat, format, type, ilGetData() );
-	}
-	else
-	{
-		unsigned char* gray_image = CreateGrayImage( 
-			(const unsigned char*)ilGetData(), width, height, format );
-
-		if ( NULL != gray_image )
-		{
-			ret = this->Initialize( width, height, iformat, GL_LUMINANCE, GL_UNSIGNED_BYTE, gray_image );
-			SAFE_RELEASE( gray_image );
-		}		
-	}	
-
+	bool ret = this->Initialize( width, height, iformat, format, type, ilGetData() );	
+	
 	ilDeleteImage( imId );
+
 	return ret;
 }
 
@@ -256,39 +248,20 @@ bool GLTexInput::LoadFile( const char* filename, GLuint& imId )
 
 bool GLTexFBO::Initialize( int width, int height, GLuint iformat /*= GL_RGBA16F_ARB */ )
 {
-	V_RET( GLTexImage::Initialize( width, height, iformat, GL_RGBA, GL_UNSIGNED_BYTE, NULL ) );		
-	//static GLuint depth_rb = 
+	V_RET( GLTexImage::Initialize( width, height, iformat ) );
+	
 	_fbo.Bind();
+
 	this->AttachToFBO( 0 );
 
-	glGenRenderbuffersEXT( 1, &_depthRB );
-	glBindRenderbufferEXT( GL_RENDERBUFFER_EXT, _depthRB );
-	glRenderbufferStorageEXT( GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, width, height );
-	glFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, _depthRB );
+	InitDepthRenderBuffer( width, height, _depthRB );
 
-	bool ret = true;
-	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-	switch( status )
-	{
-	case GL_FRAMEBUFFER_COMPLETE_EXT:
-		break;
-	default:
-		LogError( "frame buffer is incomplete");
-		ret = false;
-	}
-
-	FramebufferObject::Disable();
-	return ret;
+	return EndInitialize();	
 }
 
 void GLTexFBO::BeginCapture()
 {
 	_fbo.Bind();
-}
-
-void GLTexFBO::EndCapture()
-{
-	FramebufferObject::Disable();
 }
 
 GLTexFBO::~GLTexFBO( void )
@@ -311,8 +284,7 @@ int GLTexAttachment::s_count = 0;
 
 GLuint GLTexAttachment::s_depthRB = 0;
 
-GLTexAttachment::GLTexAttachment( int i /*= 0 */ )
-: _attachID( 0 )
+GLTexAttachment::GLTexAttachment( )
 {
 	++s_count;
 }
@@ -330,20 +302,15 @@ bool GLTexAttachment::Initialize( int width, int height,
 								 GLuint iformat /*= GL_RGBA16F_ARB */ )
 {
 	V_RET( InitFbo( width, height ) );
+
 	V_RET( GLTexImage::Initialize( width, height, iformat,
 		GL_RGBA, GL_UNSIGNED_BYTE, 0 ) );
-	this->AttachToFBO( _attachID );
 
-	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-	switch( status )
-	{
-	case GL_FRAMEBUFFER_COMPLETE_EXT:
-		return true;
-	default:
-		LogError( "fbo creation error");
-		ReleaseeFbo();
-		return false;
-	}	
+	s_pFBO->Bind();
+
+	this->AttachToFBO( 0 );
+
+	return EndInitialize();
 }
 
 void GLTexAttachment::BeginCapture( void )
@@ -352,12 +319,7 @@ void GLTexAttachment::BeginCapture( void )
 		return;
 	}
 	s_pFBO->Bind();
-	this->AttachToFBO( _attachID );
-}
-
-void GLTexAttachment::EndCapture( void )
-{
-	FramebufferObject::Disable();
+	this->AttachToFBO( 0 );
 }
 
 bool GLTexAttachment::InitFbo( int width /*= 0*/, int height /*= 0 */ )
@@ -367,13 +329,8 @@ bool GLTexAttachment::InitFbo( int width /*= 0*/, int height /*= 0 */ )
 		s_pFBO->Bind();
 
 		if ( width > 0 && height > 0 ) {
-			glGenRenderbuffersEXT( 1, &s_depthRB );
-			glBindRenderbufferEXT( GL_RENDERBUFFER_EXT, s_depthRB );
-			glRenderbufferStorageEXT( GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, 
-				width, height );
-			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, 
-				GL_RENDERBUFFER_EXT, s_depthRB );
-		}		
+			InitDepthRenderBuffer( width, height, s_depthRB );
+		}
 	}
 	else
 	{
@@ -390,4 +347,61 @@ bool GLTexAttachment::ReleaseeFbo( void )
 		s_depthRB = 0;
 	}
 	return true;
+}
+
+void GLTexFBOBase::AttachToFBO( int i )
+{
+	glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, 
+		i + GL_COLOR_ATTACHMENT0_EXT, GlobalUtil::s_texTarget, m_texID, 0 );
+}
+
+void GLTexFBOBase::DetachFBO( int i )
+{
+	glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT,
+		i + GL_COLOR_ATTACHMENT0_EXT, GlobalUtil::s_texTarget, 0, 0 );
+}
+
+void GLTexFBOBase::EndCapture()
+{
+	FramebufferObject::Disable();
+}
+
+void GLTexFBOBase::ClearBuffer( GLbitfield color /*= GL_COLOR_BUFFER_BIT*/,
+							   GLbitfield depth /*= GL_DEPTH_BUFFER_BIT*/, 
+							   GLbitfield stencil /*= 0 */ )
+{
+	glClear( color | depth | stencil );
+}
+
+GLTexFBOBase::~GLTexFBOBase( void )
+{
+
+}
+
+bool GLTexFBOBase::EndInitialize( void )
+{
+	bool ret= false;
+	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+	switch( status )
+	{
+	case GL_FRAMEBUFFER_COMPLETE_EXT:
+		ret = true;
+		break;
+	default:
+		LogError( "fbo creation error");		
+		ret = false;
+		break;
+	}	
+	FramebufferObject::Disable();
+	return ret;
+}
+
+void GLTexFBOBase::InitDepthRenderBuffer( int width, int height, GLuint& depthRB )
+{
+	glGenRenderbuffersEXT( 1, &depthRB );
+	glBindRenderbufferEXT( GL_RENDERBUFFER_EXT, depthRB );
+	glRenderbufferStorageEXT( GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, 
+		width, height );
+	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, 
+		GL_RENDERBUFFER_EXT, depthRB );
 }

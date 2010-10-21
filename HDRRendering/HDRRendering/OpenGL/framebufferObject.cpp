@@ -63,12 +63,12 @@ FramebufferObject::~FramebufferObject()
 
 void FramebufferObject::Bind() 
 {
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_fboId);
+	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, m_fboId );
 }
 
 void FramebufferObject::Disable() 
 {
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
 }
 
 void

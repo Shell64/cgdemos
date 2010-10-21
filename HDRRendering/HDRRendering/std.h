@@ -7,6 +7,7 @@
 #include <exception>
 #include <cmath>
 #include <string>
+#include <vector>
 
 #include "IL/il.h"
 #include "IL/ilu.h"
