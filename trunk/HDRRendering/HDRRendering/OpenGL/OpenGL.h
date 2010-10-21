@@ -13,6 +13,8 @@
 #include "../Mesh/TriMesh.h"
 #include "../Mesh/TriMeshManager.h"
 
+#pragma comment( lib, "glew32.lib" )
+
 #else
 #error __OPENGL_H__ already defined!
 #endif//__OPENGL_H__

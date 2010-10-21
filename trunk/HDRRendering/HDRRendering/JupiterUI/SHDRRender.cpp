@@ -38,16 +38,15 @@ bool SHDRRender::OnPaint( WPARAM wParam, LPARAM lParam )
 	SaveMVPMatrices();	
   
 	//down sample
-	_rtDownsample.BeginCapture();
+	SetRenderTarget( _rtDownsample );
 	_hdrTex.Bind();
 	_downSampleEffect.Begin();
 	_downSampleEffect.SetUniform( "Tex", 0 );
 	_rtDownsample.DrawQuad();
-	_downSampleEffect.End();
-	_rtDownsample.EndCapture();
+	_downSampleEffect.End();	
 
 	//blur x
-	_rtBlurX.BeginCapture();
+	SetRenderTarget( _rtBlurX );
 	_rtDownsample.Bind();
 	_blurXEffect.Begin();
 	_blurXEffect.SetUniform( "Tex", 0 );	
@@ -55,11 +54,10 @@ bool SHDRRender::OnPaint( WPARAM wParam, LPARAM lParam )
 	_blurXEffect.SetUniform( "step", stepx );
 	_blurXEffect.SetUniform( "weight", 4, m_GK );	
 	_rtBlurX.DrawQuad();
-	_blurXEffect.End();
-	_rtBlurX.EndCapture();
+	_blurXEffect.End();	
 
 	//blur y
-	_rtBlurY.BeginCapture();
+	SetRenderTarget( _rtBlurY );
 	_rtBlurX.Bind();
 	_blurYEffect.Begin();
 	_blurYEffect.SetUniform( "Tex", 0 );	
@@ -67,12 +65,12 @@ bool SHDRRender::OnPaint( WPARAM wParam, LPARAM lParam )
 	_blurYEffect.SetUniform( "step", stepy );
 	_blurYEffect.SetUniform( "weight", 4, m_GK );	
 	_rtBlurY.DrawQuad();
-	_blurYEffect.End();
-	_rtBlurY.EndCapture();
+	_blurYEffect.End();	
 
 	//display
-	FramebufferObject::Disable();
-	glDisable( GL_TEXTURE_2D );
+	ResetRenderTarget();
+
+	//glDisable( GL_TEXTURE_2D );
 
 	RestoreMVPMatrices();
 

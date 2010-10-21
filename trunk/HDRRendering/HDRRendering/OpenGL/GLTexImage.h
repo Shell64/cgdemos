@@ -8,9 +8,9 @@ public:
 
 	virtual ~GLTexImage(void);
 
-	void Bind();
+	void Bind() const;
 
-	void Unbind();
+	void Unbind() const;
 
 	void DrawQuad();
 
@@ -30,13 +30,13 @@ public:
 	void Save( const char* filename );
 
 public:
-	inline GLuint GetTexID() { return m_texID; }
+	inline GLuint GetTexID() { return _texID; }
 
-	inline int GetTexWidth() { return m_texWidth; }
+	inline int GetTexWidth() { return _texWidth; }
 
-	inline int GetTexHeight() { return m_texHeight; }
+	inline int GetTexHeight() { return _texHeight; }
 
-	inline GLuint GetFormat() { return m_format; }
+	inline GLuint GetFormat() { return _iformat; }
 
 protected:
 	bool BeginInitialize( void );
@@ -46,10 +46,10 @@ protected:
 	void Release( void );
 
 protected:
-	GLuint m_texID;
-	int m_texWidth;
-	int m_texHeight;
-	GLuint m_format;
+	GLuint _texID;
+	int _texWidth;
+	int _texHeight;
+	GLuint _iformat;
 	bool _bIsValid;
 };
 
@@ -76,34 +76,30 @@ protected:
 							int width, int height, int format );
 };
 
-class GLTexFBOBase : public GLTexImage
+class GLRenderTarget : public GLTexImage
 {
 public:
-	virtual ~GLTexFBOBase( void ) = NULL;
+	virtual ~GLRenderTarget( void ) = NULL;
 
-	virtual bool Initialize( int width, int height, GLuint iformat ) = NULL;
+	virtual bool Initialize( int width, int height, GLuint iformat ) = NULL;	
 
-	virtual void BeginCapture() = NULL;
-
-	static void EndCapture();
-
-	static void ClearBuffer( GLbitfield color = GL_COLOR_BUFFER_BIT, 
-		GLbitfield depth = GL_DEPTH_BUFFER_BIT,
-		GLbitfield stencil = 0 );
+	/*static void EndCapture();*/	
 
 protected:
-	bool EndInitialize( void );
+	virtual void Capture() const = NULL;
+
+	bool Finalize( void );
 
 	static void InitDepthRenderBuffer( int width, int height, GLuint& depthRB );
 
-	void AttachToFBO( int i );
+	void AttachToFBO( int i ) const;
 
-	void DetachFBO( int i );
+	void DetachFBO( int i ) const;
 
-
+	friend class GLWidget;
 };
 
-class GLTexFBO : public GLTexFBOBase
+class GLTexFBO : public GLRenderTarget
 {
 public:
 	GLTexFBO( void );
@@ -112,14 +108,15 @@ public:
 
 	bool Initialize( int width, int height, GLuint iformat = GL_RGBA16F_ARB );
 
-	void BeginCapture();
+protected:
+	void Capture() const;
 
 protected:
 	GLuint _depthRB;
 	FramebufferObject _fbo;
 };
 
-class GLTexAttachment : public GLTexFBOBase
+class GLTexAttachment : public GLRenderTarget
 {
 public:
 	GLTexAttachment( void );
@@ -128,9 +125,9 @@ public:
 
 	bool Initialize( int width, int height, GLuint iformat = GL_RGBA16F_ARB );
 
-	void BeginCapture( void );	
-
 protected:
+	void Capture( void ) const;	
+
 	static bool InitFbo( int width = 0, int height = 0 );
 
 	static bool ReleaseeFbo( void );

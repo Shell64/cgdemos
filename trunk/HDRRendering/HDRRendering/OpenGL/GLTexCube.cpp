@@ -19,7 +19,7 @@ GLTexCube::~GLTexCube(void)
 	_bIsValid = false;
 }
 
-void GLTexCube::Bind( void )
+void GLTexCube::Bind( void ) const
 {
 	if ( !_bIsValid ) {
 		LogError( "the texture is invalid!" );
@@ -28,7 +28,7 @@ void GLTexCube::Bind( void )
 	glBindTexture( GL_TEXTURE_CUBE_MAP, _texID );
 }
 
-void GLTexCube::Unbind( void )
+void GLTexCube::Unbind( void ) const
 {
 	if ( !_bIsValid ) {
 		LogError( "the texture is invalid!" );

@@ -49,6 +49,8 @@ public:
 
 	virtual bool OnCommand( WPARAM wParam, LPARAM lParam );
 
+	virtual bool OnScroll( WPARAM wParam, LPARAM lParam );
+
 private:
 	CBaseWindow( const CBaseWindow& window ) { }
 

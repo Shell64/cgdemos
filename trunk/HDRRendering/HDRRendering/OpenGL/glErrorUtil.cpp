@@ -72,6 +72,6 @@ void LogError( const std::string& err_info,
 	ostr << err_info << " at" << location << endl;	
 }
 
-LogStream LogStream::LS;
-
 #endif
+
+LogStream LogStream::LS;

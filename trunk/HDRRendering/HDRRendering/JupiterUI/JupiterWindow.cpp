@@ -70,7 +70,11 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 
 	case  WM_COMMAND:	
 		CHECK_WND( window );
-		C_BREAK_R( window->OnCommand( wParam, lParam ) );		
+		C_BREAK_R( window->OnCommand( wParam, lParam ) );	
+
+	case WM_HSCROLL:
+		CHECK_WND( window );
+		C_BREAK_R( window->OnScroll( wParam, lParam ) );
 
 	case WM_DESTROY:		
 		break;	
@@ -243,5 +247,9 @@ CBaseWindow* CBaseWindow::FindWindow( HWND hWnd )
 	return s_WindowMap.end() == it ? NULL : it->second;
 }
 
+bool CBaseWindow::OnScroll( WPARAM wParam, LPARAM lParam )
+{
+	return true;
+}
 
 

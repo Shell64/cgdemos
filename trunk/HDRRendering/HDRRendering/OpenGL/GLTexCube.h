@@ -12,9 +12,9 @@ public:
 
 	virtual ~GLTexCube(void);
 
-	void Bind( void );
+	void Bind( void ) const;
 
-	void Unbind( void );
+	void Unbind( void ) const;
 
 	bool Initialize( int width, int height, GLint iformat = GL_RGBA16F );
 

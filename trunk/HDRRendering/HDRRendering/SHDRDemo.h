@@ -8,7 +8,7 @@ class SHDRDemo : public CBaseWindow
 {
 public:
 	SHDRDemo( LPCTSTR lpszClassName,
-		LPCTSTR lpszWindowName );
+		LPCTSTR lpszWindowName = "Simple HDR Rendering Demo" );
 
 	virtual ~SHDRDemo( void );
 
