@@ -94,7 +94,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="1"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -136,7 +136,7 @@
 				Name="VCLinkerTool"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
-				SubSystem="1"
+				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				TargetMachine="1"
@@ -233,11 +233,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\JupiterUI\Jupiterindow.cpp"
+				RelativePath=".\JupiterUI\JupiterUI.h"
 				>
 			</File>
 			<File
-				RelativePath=".\JupiterUI\JupiterUI.h"
+				RelativePath=".\JupiterUI\JupiterWindow.cpp"
 				>
 			</File>
 			<File

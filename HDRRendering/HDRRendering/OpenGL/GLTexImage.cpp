@@ -9,8 +9,8 @@
 #include "GLTexImage.h"
 
 GLTexImage::GLTexImage(void)
-:m_texWidth( 0 ), m_texHeight( 0 ),
-m_texID( 0 ), _bIsValid( false )
+:_texWidth( 0 ), _texHeight( 0 ),
+_texID( 0 ), _bIsValid( false )
 {	
 }
 
@@ -19,16 +19,16 @@ GLTexImage::~GLTexImage(void)
 	this->Release();
 }
 
-void GLTexImage::Bind()
+void GLTexImage::Bind() const
 {
 	if ( !_bIsValid ) {
 		LogError( "the texture is invalid!" );
 		return;
 	}
-	glBindTexture( GlobalUtil::s_texTarget, m_texID );
+	glBindTexture( GlobalUtil::s_texTarget, _texID );
 }
 
-void GLTexImage::Unbind()
+void GLTexImage::Unbind() const
 {
 	if ( !_bIsValid ) {
 		LogError( "the texture is invalid!" );
@@ -36,7 +36,7 @@ void GLTexImage::Unbind()
 	}
 	GLint currentId = 0;
 	glGetIntegerv( GL_TEXTURE_BINDING_2D, &currentId );
-	if ( m_texID != currentId ) {
+	if ( _texID != currentId ) {
 		LogError( "this texture is not binding!" );
 		return;
 	}
@@ -59,9 +59,9 @@ void GLTexImage::DrawQuad()
 {
 	glBegin (GL_QUADS);
 	glTexCoord2i ( 0, 0 );          glVertex2i( 0, 0 ); 
-	glTexCoord2i ( 0, 1  );         glVertex2i( 0, m_texHeight ); 
-	glTexCoord2i ( 1, 1 );			glVertex2i( m_texWidth, m_texHeight ); 
-	glTexCoord2i ( 1, 0 );           glVertex2i( m_texWidth, 0 ); 
+	glTexCoord2i ( 0, 1  );         glVertex2i( 0, _texHeight ); 
+	glTexCoord2i ( 1, 1 );			glVertex2i( _texWidth, _texHeight ); 
+	glTexCoord2i ( 1, 0 );           glVertex2i( _texWidth, 0 ); 
 	glEnd ();
 	glFlush();
 }
@@ -92,10 +92,10 @@ void GLTexImage::SetTextureParam()
 
 void GLTexImage::FitViewport( )
 {	
-	glViewport( 0, 0, m_texWidth, m_texHeight ); 
+	glViewport( 0, 0, _texWidth, _texHeight ); 
 	glMatrixMode( GL_PROJECTION );    
 	glLoadIdentity();
-	glOrtho( 0, m_texWidth, 0, m_texHeight,  0, 1 );
+	glOrtho( 0, _texWidth, 0, _texHeight,  0, 1 );
 	glMatrixMode( GL_MODELVIEW );     
 	glLoadIdentity();
 }
@@ -103,12 +103,12 @@ void GLTexImage::FitViewport( )
 bool GLTexImage::BeginInitialize( void )
 {	
 	CheckErrorsGL( "BeginInitialize:" );
-	if ( m_texID > 0 )
+	if ( _texID > 0 )
 	{
 		this->Release();
 	}
-	glGenTextures( 1, &m_texID );
-	glBindTexture( GlobalUtil::s_texTarget, m_texID );	
+	glGenTextures( 1, &_texID );
+	glBindTexture( GlobalUtil::s_texTarget, _texID );	
 	return true;
 }
 
@@ -125,9 +125,9 @@ bool GLTexImage::EndInitialize( int width, int height, GLuint iformat )
 		return false;
 	}
 
-	m_texWidth = width;
-	m_texHeight = height;
-	m_format = iformat;
+	_texWidth = width;
+	_texHeight = height;
+	_iformat = iformat;
 	_bIsValid = true;
 
 	return true;
@@ -136,11 +136,11 @@ bool GLTexImage::EndInitialize( int width, int height, GLuint iformat )
 void GLTexImage::Save( const char* filename )
 {
 	this->Bind();
-	float* data = new float[ 4 * m_texWidth * m_texHeight ];
+	float* data = new float[ 4 * _texWidth * _texHeight ];
 	glGetTexImage( GlobalUtil::s_texTarget, 0, GL_RGBA, GL_FLOAT, data );
 	ilInit();
 	ILuint id = ilGenImage();
-	ilTexImage( m_texWidth, m_texHeight, 1, 4, IL_RGBA, IL_FLOAT, data );
+	ilTexImage( _texWidth, _texHeight, 1, 4, IL_RGBA, IL_FLOAT, data );
 	ilSaveImage( filename );	
 	ilDeleteImage(id);
 	SAFE_RELEASE( data );
@@ -150,9 +150,9 @@ void GLTexImage::DrawQuadLeft()
 {
 	glBegin (GL_QUADS);
 	glTexCoord2f ( 0, 0 );          glVertex2i( 0, 0 ); 
-	glTexCoord2f ( 0, 1  );         glVertex2i( 0, m_texHeight ); 
-	glTexCoord2f ( 0.5, 1 );			glVertex2i( m_texWidth/2, m_texHeight ); 
-	glTexCoord2f ( 0.5, 0 );           glVertex2i( m_texWidth/2, 0 ); 
+	glTexCoord2f ( 0, 1  );         glVertex2i( 0, _texHeight ); 
+	glTexCoord2f ( 0.5, 1 );			glVertex2i( _texWidth/2, _texHeight ); 
+	glTexCoord2f ( 0.5, 0 );           glVertex2i( _texWidth/2, 0 ); 
 	glEnd ();
 	glFlush();
 }
@@ -160,22 +160,22 @@ void GLTexImage::DrawQuadLeft()
 void GLTexImage::DrawQuadRight()
 {
 	glBegin (GL_QUADS);
-	glTexCoord2f ( 0.5, 0 );          glVertex2i( m_texWidth/2, 0 ); 
-	glTexCoord2f ( 0.5, 1  );         glVertex2i( m_texWidth/2, m_texHeight ); 
-	glTexCoord2f ( 1, 1 );			glVertex2i( m_texWidth, m_texHeight ); 
-	glTexCoord2f ( 1, 0 );           glVertex2i( m_texWidth, 0 ); 
+	glTexCoord2f ( 0.5, 0 );          glVertex2i( _texWidth/2, 0 ); 
+	glTexCoord2f ( 0.5, 1  );         glVertex2i( _texWidth/2, _texHeight ); 
+	glTexCoord2f ( 1, 1 );			glVertex2i( _texWidth, _texHeight ); 
+	glTexCoord2f ( 1, 0 );           glVertex2i( _texWidth, 0 ); 
 	glEnd ();
 	glFlush();
 }
 
 void GLTexImage::Release( void )
 {
-	if ( m_texID > 0 )
+	if ( _texID > 0 )
 	{
-		glDeleteTextures( 1, &m_texID );
-		m_texID = 0;
-		m_texWidth = m_texHeight = 0;
-		m_format = 0;
+		glDeleteTextures( 1, &_texID );
+		_texID = 0;
+		_texWidth = _texHeight = 0;
+		_iformat = 0;
 		_bIsValid = false;
 	}
 }
@@ -256,10 +256,10 @@ bool GLTexFBO::Initialize( int width, int height, GLuint iformat /*= GL_RGBA16F_
 
 	InitDepthRenderBuffer( width, height, _depthRB );
 
-	return EndInitialize();	
+	return Finalize();	
 }
 
-void GLTexFBO::BeginCapture()
+void GLTexFBO::Capture() const
 {
 	_fbo.Bind();
 }
@@ -310,10 +310,10 @@ bool GLTexAttachment::Initialize( int width, int height,
 
 	this->AttachToFBO( 0 );
 
-	return EndInitialize();
+	return Finalize();
 }
 
-void GLTexAttachment::BeginCapture( void )
+void GLTexAttachment::Capture( void ) const
 {
 	if ( NULL == s_pFBO ) {
 		return;
@@ -349,36 +349,24 @@ bool GLTexAttachment::ReleaseeFbo( void )
 	return true;
 }
 
-void GLTexFBOBase::AttachToFBO( int i )
+void GLRenderTarget::AttachToFBO( int i ) const
 {
 	glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, 
-		i + GL_COLOR_ATTACHMENT0_EXT, GlobalUtil::s_texTarget, m_texID, 0 );
+		i + GL_COLOR_ATTACHMENT0_EXT, GlobalUtil::s_texTarget, _texID, 0 );
 }
 
-void GLTexFBOBase::DetachFBO( int i )
+void GLRenderTarget::DetachFBO( int i ) const
 {
 	glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT,
 		i + GL_COLOR_ATTACHMENT0_EXT, GlobalUtil::s_texTarget, 0, 0 );
 }
 
-void GLTexFBOBase::EndCapture()
-{
-	FramebufferObject::Disable();
-}
-
-void GLTexFBOBase::ClearBuffer( GLbitfield color /*= GL_COLOR_BUFFER_BIT*/,
-							   GLbitfield depth /*= GL_DEPTH_BUFFER_BIT*/, 
-							   GLbitfield stencil /*= 0 */ )
-{
-	glClear( color | depth | stencil );
-}
-
-GLTexFBOBase::~GLTexFBOBase( void )
+GLRenderTarget::~GLRenderTarget( void )
 {
 
 }
 
-bool GLTexFBOBase::EndInitialize( void )
+bool GLRenderTarget::Finalize( void )
 {
 	bool ret= false;
 	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
@@ -396,7 +384,7 @@ bool GLTexFBOBase::EndInitialize( void )
 	return ret;
 }
 
-void GLTexFBOBase::InitDepthRenderBuffer( int width, int height, GLuint& depthRB )
+void GLRenderTarget::InitDepthRenderBuffer( int width, int height, GLuint& depthRB )
 {
 	glGenRenderbuffersEXT( 1, &depthRB );
 	glBindRenderbufferEXT( GL_RENDERBUFFER_EXT, depthRB );

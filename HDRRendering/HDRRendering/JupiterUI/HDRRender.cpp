@@ -11,7 +11,13 @@ _bMove( false ), _etaRatio( 0.8f, 0.8f, 0.8f ),
 _matColor( 0.1f, 0.1f, 0.12f ), _pModel( NULL ),
 _pMesh( NULL ), _bTrimesh( true )
 {
-
+	_exposure = 1.1f;
+	_bloomFactor = 0.5f;
+	_reflectionFactor = 0.2f;
+	_brightThreshold = 1.2f;
+	_fresnelBias = 0.2f;
+	_fresnelScale = 1.f;
+	_fresnelPower = 1.f;
 }
 
 HDRRender::~HDRRender(void)
@@ -31,11 +37,10 @@ bool HDRRender::Initialize( void )
 	glShadeModel(GL_SMOOTH);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	
-	V_RET(_texCubeInput.Load( "uffizi_cross.hdr" ) );
-	
-	V_RET( _reflectEffect.Load( "shaders/reflect.vp", "shaders/reflect.fp" ) );
-	
-	_texInput.Load( "media/pro.bmp" );	
+	V_RET( _texCubeHdrInput.Load( "uffizi_cross.hdr" ) );
+	V_RET( _texCubeRgbInput.Load( "uffizi_cross.hdr", GL_RGBA ) );			
+	V_RET( _texHdrInput.Load( "media/pro.bmp" ) );
+	V_RET( _texRgbInput.Load( "media/pro.bmp", GL_RGBA ) );
 
 	if ( _bTrimesh ) 
 	{
@@ -49,6 +54,7 @@ bool HDRRender::Initialize( void )
 		glmLinearTexture( _pModel );
 	}
 
+	V_RET( _reflectEffect.Load( "shaders/reflect.vp", "shaders/reflect.fp" ) );
 	V_RET( _bloomEffect.Load( NULL, "shaders/extractBloom.fp") );
 	V_RET( _blurXEffect.Load( NULL, "shaders/bx.fp" ) );
 	V_RET( _blurYEffect.Load( NULL, "shaders/by.fp" ) );
@@ -164,8 +170,8 @@ bool HDRRender::OnLButtonUp( WPARAM wParam, LPARAM lParam )
 	return true;
 }
 
-void HDRRender::RenderSkybox( void )
-{	
+void HDRRender::RenderSkybox( const GLTexCube& cubeTex )
+{
 	GLfloat s_plane[] = { 1.0, 0.0, 0.0, 0.0 };
 	GLfloat t_plane[] = { 0.0, 1.0, 0.0, 0.0 };
 	GLfloat r_plane[] = { 0.0, 0.0, 1.0, 0.0 };
@@ -184,7 +190,7 @@ void HDRRender::RenderSkybox( void )
 	glEnable(GL_TEXTURE_GEN_S);
 	glEnable(GL_TEXTURE_GEN_T);
 	glEnable(GL_TEXTURE_GEN_R);
-	_texCubeInput.Bind();
+	cubeTex.Bind();
 
 	float s = 500.0f;
 	glBegin(GL_QUADS); 
@@ -225,26 +231,25 @@ void HDRRender::RenderSkybox( void )
 	glDisable(GL_TEXTURE_CUBE_MAP);
 }
 
-void HDRRender::RenderMesh( void )
-{	
-	_reflectEffect.Begin();
-	
+void HDRRender::RenderMesh( const GLTexCube& cubeTex, const GLTexImage& texImage )
+{
 	glActiveTexture( GL_TEXTURE0 );
-	_texInput.Bind();
+	texImage.Bind();
 	glActiveTexture( GL_TEXTURE1 );
-	_texCubeInput.Bind();
+	cubeTex.Bind();
 
+	_reflectEffect.Begin();
 	_reflectEffect.SetUniform( "env", 1 );
 	_reflectEffect.SetUniform( "tex", 0 );
-	_reflectEffect.SetUniform( "reflectionFactor", 0.2f );
-	_reflectEffect.SetUniform( "fresnelBias", 0.2f );
+	_reflectEffect.SetUniform( "reflectionFactor", _reflectionFactor );
+	/*_reflectEffect.SetUniform( "fresnelBias", 0.2f );
 	_reflectEffect.SetUniform( "fresnelScale", 1.0f );
 	_reflectEffect.SetUniform( "fresnelPower", 1.0f );
-	_reflectEffect.SetUniform( "etaRatio", _etaRatio.x );	
+	_reflectEffect.SetUniform( "etaRatio", _etaRatio.x );	*/
 	_reflectEffect.SetUniform( "eyePos", _camera.GetEyePos() );
-	_reflectEffect.SetUniform( "etaRatioRGB", _etaRatio );
+	//_reflectEffect.SetUniform( "etaRatioRGB", _etaRatio );
 	_reflectEffect.SetUniform( "matColor", _matColor );
-	
+
 	if ( _bTrimesh )
 		RenderTrimesh();
 	else
@@ -299,28 +304,26 @@ void HDRRender::RenderGLMMesh( void )
 
 void HDRRender::RenderHdr( void )
 {		
-	_rtHdr.BeginCapture();
-	_rtHdr.ClearBuffer();
-	RenderSkybox();
-	RenderMesh();
-	_rtHdr.EndCapture();
+	SetRenderTarget( _rtHdr );
+	ClearBuffer();
+	RenderSkybox( _texCubeHdrInput );
+	RenderMesh( _texCubeHdrInput, _texRgbInput );
 	
 	SaveMVPMatrices();
 	glEnable( GL_TEXTURE_2D );
 	
-	_rtBloom.BeginCapture();
-		_rtBloom.FitViewport();
-		_bloomEffect.Begin();
-		_bloomEffect.SetUniform( "tex", 0 );
-		_bloomEffect.SetUniform( "brightThreshold", 1.2f );
-		_rtHdr.Bind();
-		_rtBloom.DrawQuad();
-		_bloomEffect.End();
-	_rtBloom.EndCapture();
+	SetRenderTarget( _rtBloom );
+	_rtBloom.FitViewport();
+	_bloomEffect.Begin();
+	_bloomEffect.SetUniform( "tex", 0 );
+	_bloomEffect.SetUniform( "brightThreshold", _brightThreshold );
+	_rtHdr.Bind();
+	_rtBloom.DrawQuad();
+	_bloomEffect.End();	
 
 	GLTexAttachment* prev = &_rtBloom;
 	for ( int i = 0; i < s_blurPasses; ++i ) {
-	_rtBlurX[i].BeginCapture();
+		SetRenderTarget( _rtBlurX[i] );
 		_rtBlurX[i].FitViewport();
 		_blurXEffect.Begin();
 		prev->Bind();
@@ -328,10 +331,9 @@ void HDRRender::RenderHdr( void )
 		_blurXEffect.SetUniform( "step", stepx );
 		_blurXEffect.SetUniform( "weight", 4, _GK );
 		_rtBlurX[i].DrawQuad();
-		_blurXEffect.End();
-	_rtBlurX[i].EndCapture();
+		_blurXEffect.End();	
 	
-	_rtBlurY[i].BeginCapture();
+		SetRenderTarget( _rtBlurY[i] );
 		_rtBlurY[i].FitViewport();
 		_blurYEffect.Begin();
 		_rtBlurX[i].Bind();
@@ -339,30 +341,29 @@ void HDRRender::RenderHdr( void )
 		_blurYEffect.SetUniform( "step", stepy );
 		_blurYEffect.SetUniform( "weight", 4, _GK );
 		_rtBlurY[i].DrawQuad();
-		_blurYEffect.End();
-	_rtBlurY[i].EndCapture();
-	prev = &_rtBlurY[i];
+		_blurYEffect.End();	
+		prev = &_rtBlurY[i];
 	
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_ONE, GL_ONE );
-		_rtBloom.BeginCapture();
-		_rtBlurY[i].Bind();
-		_rtBloom.FitViewport();
-		_rtBloom.DrawQuad();
-		_rtBloom.EndCapture();
-	glDisable( GL_BLEND );
+		glEnable( GL_BLEND );
+		glBlendFunc( GL_ONE, GL_ONE );
+			SetRenderTarget( _rtBloom );
+			_rtBlurY[i].Bind();
+			_rtBloom.FitViewport();
+			_rtBloom.DrawQuad();		
+		glDisable( GL_BLEND );
 	}
-			
+
+	ResetRenderTarget();
 	glActiveTexture( GL_TEXTURE0 );
 	_rtHdr.Bind();
 	glActiveTexture( GL_TEXTURE1 );
 	_rtBloom.Bind();
 	_toneEffect.Begin();
-	_toneEffect.SetUniform("brightThreshold", 1.2f );
-	_toneEffect.SetUniform("bloomFactor", 0.5f );
-	_toneEffect.SetUniform("exposure", 1.1f );
-	_toneEffect.SetUniform("tex", 0);
-	_toneEffect.SetUniform("bloom", 1);
+	_toneEffect.SetUniform( "brightThreshold", _brightThreshold );
+	_toneEffect.SetUniform( "bloomFactor", _bloomFactor );
+	_toneEffect.SetUniform( "exposure", _exposure );
+	_toneEffect.SetUniform( "tex", 0);
+	_toneEffect.SetUniform( "bloom", 1);
 	_rtHdr.DrawQuadRight();
 	_toneEffect.End();
 	glActiveTexture( GL_TEXTURE0 );
@@ -376,12 +377,12 @@ void HDRRender::RenderHdr( void )
 
 void HDRRender::RenderRgb( void )
 {		
-	_rtRgb.BeginCapture();
-	_rtRgb.ClearBuffer();
-	RenderSkybox();
-	RenderMesh();
-	_rtRgb.EndCapture();
+	SetRenderTarget( _rtRgb );
+	ClearBuffer();
+	RenderSkybox( _texCubeRgbInput );
+	RenderMesh( _texCubeRgbInput, _texRgbInput );	
 
+	ResetRenderTarget();
 	SaveMVPMatrices();
 	_rtRgb.Bind();
 	_rtRgb.FitViewport();

@@ -86,16 +86,6 @@ void LogError( const std::string& err_info,
 			  std::ostream& ostr = LogStream::LS() );
 
 #else
-inline void CheckErrorsGL( const char* location = NULL, 
-						  std::ostream& ostr = LogStream::LS() ) 
-{}
-
-inline void LogError( const std::string& err_info,
-					 const std::string& location = std::string(),
-					 std::ostream& ostr = LogStream::LS() )
-{
-
-}
 
 class LogStream
 {
@@ -115,8 +105,19 @@ private:
 	}
 
 private:
-	std::ostream _ostr;
+	std::fstream _ostr;
 };
+
+inline void CheckErrorsGL( const char* location = NULL, 
+						  std::ostream& ostr = LogStream::LS() ) 
+{}
+
+inline void LogError( const std::string& err_info,
+					 const std::string& location = std::string(),
+					 std::ostream& ostr = LogStream::LS() )
+{
+
+}
 
 #endif 
 

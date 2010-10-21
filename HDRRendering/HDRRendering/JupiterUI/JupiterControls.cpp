@@ -184,8 +184,86 @@ void GLWidget::RestoreMVPMatrices( void )
 	glLoadMatrixd( s_ModelView );
 }
 
+void GLWidget::SetRenderTarget( const GLRenderTarget& rt )
+{
+	rt.Capture();
+}
+
+void GLWidget::ResetRenderTarget( void )
+{
+	FramebufferObject::Disable();
+}
+
+void GLWidget::ClearBuffer( GLbitfield color /*= GL_COLOR_BUFFER_BIT*/,
+								 GLbitfield depth /*= GL_DEPTH_BUFFER_BIT*/, 
+								 GLbitfield stencil /*= 0 */ )
+{
+	glClear( color | depth | stencil );
+}
+
 GLint GLWidget::s_Viewport[4];
 
 GLdouble GLWidget::s_Projection[16];
 
 GLdouble GLWidget::s_ModelView[16];
+
+/************************************************************************
+ * class Slider begin
+ ***********************************************************************/
+Slider::Slider( HWND hParentWnd, float min, float max, int x, int y, int cx, int cy )
+: _fMax( max ), _fMin( min ), _fPercent( 0.f )
+{
+	HINSTANCE hInstance = (HINSTANCE)GetModuleHandle( NULL );
+	_hWnd = CreateWindow( TRACKBAR_CLASS, "",
+		WS_CHILD | WS_VISIBLE | TBS_NOTICKS,
+		x, y, cx, cy, hParentWnd, NULL, hInstance, NULL );
+		
+	_nLength = 200;
+	SendMessage( _hWnd, TBM_SETRANGEMAX, FALSE, _nLength );
+	SendMessage( _hWnd, TBM_SETSEL, FALSE, 0 );
+	SendMessage( _hWnd, TBM_SETPAGESIZE, FALSE, 10 );
+}
+
+bool Slider::OnScroll( WPARAM wParam, LPARAM lParam )
+{
+	HWND handle = (HWND)lParam;
+	if ( _hWnd != handle ) return false;	
+	int msg = LOWORD( wParam );
+	switch ( msg )
+	{
+	case TB_PAGEDOWN:		
+	case TB_PAGEUP:
+		{			
+			int pos = SendMessage( _hWnd, TBM_GETPOS, NULL, NULL );
+			_fPercent = float( pos ) / _nLength;
+		}
+		return true;
+	case TB_THUMBTRACK: 
+		{
+			int pos = HIWORD( wParam );
+			_fPercent = float( pos ) / _nLength;
+		}
+		return true;
+	}
+	return false;
+}
+
+
+
+Label::Label( HWND hParent, int x, int y, int cx, int cy, const char* text )
+{
+	HINSTANCE hInstance = (HINSTANCE)GetModuleHandle( NULL );
+	_hWnd = CreateWindow( "Static", text,
+		WS_CHILD | WS_VISIBLE,
+		x, y, cx, cy, hParent, NULL, hInstance, NULL );
+}
+
+void Label::SetText( const char* text )
+{
+
+}
+
+const char* Label::GetTex( void )
+{
+	return NULL;
+}	

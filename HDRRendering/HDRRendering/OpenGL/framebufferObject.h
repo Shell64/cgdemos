@@ -105,7 +105,7 @@ public:
 	virtual ~FramebufferObject();
 
 	/// Bind this FBO as current render target
-	void Bind();
+	void Bind() const;
 
 	/// Bind a texture to the "attachment" point of this FBO
 	virtual void AttachTexture( GLenum texTarget, 
