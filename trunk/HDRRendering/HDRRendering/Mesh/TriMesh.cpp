@@ -19,7 +19,7 @@ bool TriMesh::loadFromMs3d(const char *filename)
 	uint8 tempU8;
 	uint16 tempU16;
 	float tempF;
-
+	
 	// Try to open the file
 	FILE* f = fopen(filename, "rb");
 	//if (f == 0)

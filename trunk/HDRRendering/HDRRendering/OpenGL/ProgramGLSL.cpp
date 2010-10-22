@@ -63,6 +63,7 @@ void ProgramGLSL::CheckLinkLog()
 
 	if ( !m_is_linked )
 	{
+		CheckErrorsGL("ProgramGLSL::CheckLinkLog");
 		PrintLinkLog( LogStream::LS() );
 	}
 }

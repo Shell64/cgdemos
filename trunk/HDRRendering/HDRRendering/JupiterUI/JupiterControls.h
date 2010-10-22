@@ -53,6 +53,16 @@ protected:
 	static GLint s_Viewport[4];
 };
 
+class StandardControl
+{
+public:
+	StandardControl( const char* type, HWND hParent, int x, int y, int cx, int cy, DWORD style, const char* text = NULL );
+
+	virtual ~StandardControl( void );
+
+protected:
+	HWND _hWnd;
+};
 
 class Slider
 {
@@ -96,6 +106,41 @@ public:
 
 protected:
 	HWND _hWnd;
+};
+
+class ComboBox : public StandardControl
+{
+public:
+	ComboBox( HWND hParent, int x, int y, int cx, int cy );
+
+	inline int AddItem( const char* text ) { return AddItem( text, text ); }
+
+	int AddItem( const char* text, const char* value );
+
+	int AddItems( const char* texts[], const char* values[], int n );
+
+	inline int AddItems( const char* texts[], int n ) {
+		return AddItems( texts, texts, n ); 
+	}
+
+	bool OnCommand( WPARAM wParam, LPARAM lParam );
+
+	inline int GetSelectedIndex( void ) {
+		return SendMessage( _hWnd, CB_GETCURSEL, 0, 0 ); 
+	}
+
+	inline int SetSelectedIndex( int index ) { 
+		return SendMessage( _hWnd, CB_SETCURSEL, index, 0 ); 
+	}
+
+	const char* GetSelectedValue( void ) { 
+		int index = GetSelectedIndex();
+		if ( CB_ERR == index ) return NULL;
+		return _values[ index ].c_str();
+	}
+
+private:
+	std::vector< std::string > _values;
 };
 
 #else
