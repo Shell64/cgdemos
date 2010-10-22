@@ -16,8 +16,8 @@ HDRDemo::HDRDemo( LPCSTR lpszClassName, LPCTSTR lpszWindowName )
 	int startx = startxl + wl;
 	int starty = 10;
 	int w = 200;	
-	int h = 20;
-	int n = 22;
+	int h = 18;
+	int n = 30;
 	
 	_pExposureLabel = new Label( _hWnd, startxl, starty, wl, h, "Exposure:" );
 	_pExposureSlider = new Slider( _hWnd, 0.f, 10.f, startx, starty, w, h );
@@ -25,7 +25,7 @@ HDRDemo::HDRDemo( LPCSTR lpszClassName, LPCTSTR lpszWindowName )
 
 	starty += n;
 	_pRFLabel = new Label( _hWnd, startxl, starty, wl, h, "Reflection Factor:" );
-	_pRFSlider = new Slider( _hWnd, 0.f, 10.f, startx, starty, w, h );
+	_pRFSlider = new Slider( _hWnd, 0.f, 2.f, startx, starty, w, h );
 	_pRFSlider->SetValue( _pWidget->GetReflectionFactor() );
 
 	starty += n;
@@ -52,6 +52,45 @@ HDRDemo::HDRDemo( LPCSTR lpszClassName, LPCTSTR lpszWindowName )
 	_pMCBLabel = new Label( _hWnd, startxl, starty, wl, h, "Blue component:" );
 	_pMCBSlider = new Slider( _hWnd, 0.f, 1.f, startx, starty, w, h );
 	_pMCBSlider->SetValue( _pWidget->GetMatColor().b );
+
+	starty += n;
+	_pModelLabel = new Label( _hWnd, startxl, starty, wl, h, "Model:" );
+	const char* modelFiles[] = { 
+		"teapot.ms3d",
+		"car1.ms3d",
+		"car2.ms3d",
+		"eye.ms3d",
+		"glass.ms3d",
+		"ming.ms3d",
+		"pottery.ms3d",
+		"spoon.ms3d"  };
+
+	const char* modelNames[] = { 
+		"teapot",
+		"car1",
+		"car2",
+		"eye",
+		"glass",
+		"ming",
+		"pottery",
+		"spoon"  };
+	assert( sizeof ( modelNames ) == sizeof ( modelFiles ) );
+	_pModelCombo = new ComboBox( _hWnd, startx, starty, w, h );
+	_pModelCombo->AddItems( modelNames, modelFiles, sizeof( modelNames ) / sizeof(char*) );
+	_pModelCombo->SetSelectedIndex( 0 );
+
+	starty += n;
+	_pEffectLabel = new Label( _hWnd, startxl, starty, wl, h, "Effect" );
+	const char* effects[] = {
+		"reflect",
+		"reflectTex",
+		"refract",
+		"fresnel",
+		"chromaticDispersion"		
+	};
+	_pEffectCombo = new ComboBox( _hWnd, startx, starty, w, h );
+	_pEffectCombo->AddItems( effects, sizeof( effects ) / sizeof( char* ) );
+	_pEffectCombo->SetSelectedIndex( 0 );
 }
 
 HDRDemo::~HDRDemo()
@@ -73,6 +112,11 @@ HDRDemo::~HDRDemo()
 	SAFE_RELEASE( _pMCRLabel );
 	SAFE_RELEASE( _pMCGLabel );
 	SAFE_RELEASE( _pMCBLabel );
+
+	SAFE_RELEASE( _pModelCombo );
+	SAFE_RELEASE( _pModelLabel );
+	SAFE_RELEASE( _pEffectCombo );
+	SAFE_RELEASE( _pEffectLabel );
 }
 
 int HDRDemo::Run()
@@ -103,23 +147,50 @@ bool HDRDemo::OnKeyDown( WPARAM wParam, LPARAM lParam )
 
 bool HDRDemo::OnScroll( WPARAM wParam, LPARAM lParam )
 {
-	if ( _pExposureSlider->OnScroll( wParam, lParam ) )
+	bool ret = false;
+	if ( _pExposureSlider->OnScroll( wParam, lParam ) ) {
 		_pWidget->SetExposure( _pExposureSlider->GetValue() );
-	
-	if ( _pRFSlider->OnScroll( wParam, lParam ) )
+		ret = true;
+	}
+	else if ( _pRFSlider->OnScroll( wParam, lParam ) ) {
 		_pWidget->SetReflectionFactor( _pRFSlider->GetValue() );
-	
-	if ( _pBTSlider->OnScroll( wParam, lParam ) )
+		ret = true;
+	}	
+	else if ( _pBTSlider->OnScroll( wParam, lParam ) ) {
 		_pWidget->SetBrightThreshold( _pBTSlider->GetValue() );
-	
-	if ( _pBFSlider->OnScroll( wParam, lParam ) )
+		ret = true;
+	}	
+	else if ( _pBFSlider->OnScroll( wParam, lParam ) ) {
 		_pWidget->SetBloomFactor( _pBFSlider->GetValue() );
-
-	if ( _pMCBSlider->OnScroll( wParam, lParam ) ||
+		ret = true;
+	}
+	else if ( _pMCBSlider->OnScroll( wParam, lParam ) ||
 		_pMCGSlider->OnScroll( wParam, lParam ) ||
-		_pMCRSlider->OnScroll( wParam, lParam ) )
+		_pMCRSlider->OnScroll( wParam, lParam ) ) {
 		_pWidget->SetMatColor(_pMCRSlider->GetValue(),
 		_pMCGSlider->GetValue(), _pMCBSlider->GetValue() );
+		ret = true;
+	}
+	
+	if ( ret )
+		::SetFocus( _hWnd );
 
 	return false;
+}
+
+bool HDRDemo::OnCommand( WPARAM wParam, LPARAM lParam )
+{
+	bool ret = false;
+	if ( _pModelCombo->OnCommand( wParam, lParam ) ) {		
+		_pWidget->ChangeModel( _pModelCombo->GetSelectedValue() );	
+		ret = true;
+	}
+	else if ( _pEffectCombo->OnCommand( wParam, lParam ) ) {
+		_pWidget->ChangeEffect( _pEffectCombo->GetSelectedValue() );
+		ret = true;
+	}	
+
+	if ( ret ) SetFocus( _hWnd );
+
+	return true;
 }

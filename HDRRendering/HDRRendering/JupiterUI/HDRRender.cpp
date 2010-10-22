@@ -9,7 +9,7 @@ HDRRender::HDRRender( HWND hParentWnd )
 :GLWidget( hParentWnd ),_camera( Vector3( 0.f, 0.f, 50.f ) ),
 _bMove( false ), _etaRatio( 0.8f, 0.8f, 0.8f ),
 _matColor( 0.1f, 0.1f, 0.12f ), _pModel( NULL ),
-_pMesh( NULL ), _bTrimesh( true )
+_pMesh( NULL ), _bTrimesh( true ), _pCurEffect( NULL )
 {
 	_exposure = 1.1f;
 	_bloomFactor = 0.5f;
@@ -23,8 +23,11 @@ _pMesh( NULL ), _bTrimesh( true )
 HDRRender::~HDRRender(void)
 {
 	SAFE_RELEASE( _pModel );
-
 	SAFE_RELEASE( _GK );
+	_pCurEffect = NULL;
+	for ( EffectMap::iterator it = _effectMap.begin();
+		_effectMap.end() != it; ++it )
+		delete it->second;
 }
 
 bool HDRRender::Initialize( void )
@@ -37,8 +40,8 @@ bool HDRRender::Initialize( void )
 	glShadeModel(GL_SMOOTH);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	
-	V_RET( _texCubeHdrInput.Load( "uffizi_cross.hdr" ) );
-	V_RET( _texCubeRgbInput.Load( "uffizi_cross.hdr", GL_RGBA ) );			
+	V_RET( _texCubeHdrInput.Load( "media/uffizi_cross.hdr" ) );
+	V_RET( _texCubeRgbInput.Load( "media/uffizi_cross.hdr", GL_RGBA ) );			
 	V_RET( _texHdrInput.Load( "media/pro.bmp" ) );
 	V_RET( _texRgbInput.Load( "media/pro.bmp", GL_RGBA ) );
 
@@ -53,8 +56,9 @@ bool HDRRender::Initialize( void )
 		glmVertexNormals( _pModel, 90.f );
 		glmLinearTexture( _pModel );
 	}
+		
+	ChangeEffectAux( "reflect" );
 
-	V_RET( _reflectEffect.Load( "shaders/reflect.vp", "shaders/reflect.fp" ) );
 	V_RET( _bloomEffect.Load( NULL, "shaders/extractBloom.fp") );
 	V_RET( _blurXEffect.Load( NULL, "shaders/bx.fp" ) );
 	V_RET( _blurYEffect.Load( NULL, "shaders/by.fp" ) );
@@ -151,22 +155,40 @@ bool HDRRender::OnResize( WPARAM wParam, LPARAM lParam )
 
 bool HDRRender::OnLButtonDown( WPARAM wParam, LPARAM lParam )
 {
-	//int xPos = GET_X_LPARAM(lParam); 
-	//int yPos = GET_Y_LPARAM(lParam); 
-	//_bMove = true;
-	//_lastPos =
+	int xPos = LOWORD(lParam); 
+	int yPos = HIWORD(lParam); 
+	/*_bMove = true;*/
+	/*_lastPos = Vector3( xPos, yPos, 0 );*/
 	return true;
 }
 
 bool HDRRender::OnMouseMove( WPARAM wParam, LPARAM lParam )
 {
-	//int xPos = GET_X_LPARAM(lParam); 
-	//int yPos = GET_Y_LPARAM(lParam); 
+	float delta = 0.01;
+	int xPos = LOWORD(lParam); 
+	int yPos = HIWORD(lParam); 
+	if ( (DWORD)wParam & MK_LBUTTON ) 
+	{
+		_camera.Yaw( ( _lastPos.x - xPos ) * delta* 10.f );
+		_camera.Pitch( ( _lastPos.y - yPos ) * delta * 10.f );
+		this->OnPaint();
+	}
+
+	if ( (DWORD)wParam & MK_RBUTTON )
+	{
+		float dist = yPos - _lastPos.y;
+		_camera.Zoom( dist * 10.f * delta );
+		this->OnPaint();
+	}
+
+	_lastPos.x = xPos;
+	_lastPos.y = yPos;
 	return true;
 }
 
 bool HDRRender::OnLButtonUp( WPARAM wParam, LPARAM lParam )
 {
+	/*_bMove = false;*/
 	return true;
 }
 
@@ -233,35 +255,39 @@ void HDRRender::RenderSkybox( const GLTexCube& cubeTex )
 
 void HDRRender::RenderMesh( const GLTexCube& cubeTex, const GLTexImage& texImage )
 {
+	RET( NULL != _pCurEffect );
+
 	glActiveTexture( GL_TEXTURE0 );
 	texImage.Bind();
 	glActiveTexture( GL_TEXTURE1 );
 	cubeTex.Bind();
 
-	_reflectEffect.Begin();
-	_reflectEffect.SetUniform( "env", 1 );
-	_reflectEffect.SetUniform( "tex", 0 );
-	_reflectEffect.SetUniform( "reflectionFactor", _reflectionFactor );
-	/*_reflectEffect.SetUniform( "fresnelBias", 0.2f );
-	_reflectEffect.SetUniform( "fresnelScale", 1.0f );
-	_reflectEffect.SetUniform( "fresnelPower", 1.0f );
-	_reflectEffect.SetUniform( "etaRatio", _etaRatio.x );	*/
-	_reflectEffect.SetUniform( "eyePos", _camera.GetEyePos() );
-	//_reflectEffect.SetUniform( "etaRatioRGB", _etaRatio );
-	_reflectEffect.SetUniform( "matColor", _matColor );
+	_pCurEffect->Begin();
+	_pCurEffect->SetUniform( "env", 1 );
+	_pCurEffect->SetUniform( "tex", 0 );
+	_pCurEffect->SetUniform( "reflectionFactor", _reflectionFactor );
+	_pCurEffect->SetUniform( "fresnelBias", 0.2f );
+	_pCurEffect->SetUniform( "fresnelScale", 1.0f );
+	_pCurEffect->SetUniform( "fresnelPower", 1.0f );
+	_pCurEffect->SetUniform( "etaRatio", _etaRatio.x );	
+	_pCurEffect->SetUniform( "eyePos", _camera.GetEyePos() );
+	_pCurEffect->SetUniform( "etaRatioRGB", _etaRatio );
+	_pCurEffect->SetUniform( "matColor", _matColor );
 
 	if ( _bTrimesh )
 		RenderTrimesh();
 	else
 		RenderGLMMesh();
 
-	_reflectEffect.End();
+	_pCurEffect->End();
 
 	glActiveTexture(GL_TEXTURE0);
 }
 
 void HDRRender::RenderTrimesh( void )
 {
+	RET( NULL != _pMesh );
+
 	GLsizei stride = sizeof(TriMesh::Vertex);
 	glVertexPointer(3, GL_FLOAT, stride, _pMesh->getVertex(0).p);
 	glNormalPointer(GL_FLOAT, stride, _pMesh->getVertex(0).n);
@@ -280,6 +306,8 @@ void HDRRender::RenderTrimesh( void )
 
 void HDRRender::RenderGLMMesh( void )
 {
+	RET( _pModel != NULL );
+
 	GLuint mode = GLM_NONE; //reset mode
 	bool smooth = true;
 	bool two_sided =false;
@@ -388,4 +416,72 @@ void HDRRender::RenderRgb( void )
 	_rtRgb.FitViewport();
 	_rtRgb.DrawQuadLeft();
 	RestoreMVPMatrices();
+}
+
+bool HDRRender::ChangeEnvironment( const char* filename )
+{
+	std::string path = "media/";
+	path.append( filename );
+	V_RET( _texCubeRgbInput.Load( path.c_str(), GL_RGBA ) );
+	V_RET( _texCubeHdrInput.Load( path.c_str() ) );
+	
+	this->OnPaint();
+
+	return true;
+}
+
+bool HDRRender::ChangeModel( const char* filename )
+{	
+	if ( _bTrimesh ) 
+	{		
+		_pMesh = TriMeshManager::get()->getTriMesh( filename );	
+	}
+	else
+	{
+		std::string path = "media/";
+		path.append( filename );
+		SAFE_RELEASE( _pModel );
+		_pModel = glmReadOBJ( path.c_str() );
+		glmFacetNormals( _pModel );
+		glmVertexNormals( _pModel, 90.f );
+		glmLinearTexture( _pModel );
+	}	
+
+	this->OnPaint();
+
+	return true;
+}
+
+bool HDRRender::ChangeEffect( const char* effect )
+{
+	V_RET( NULL != effect );
+	EffectMap::iterator it = _effectMap.find( "effect" );
+	if ( _effectMap.end() != it ) 
+	{
+		_pCurEffect = it->second;
+	}
+	else
+	{
+		ChangeEffectAux( effect );
+	}
+	this->OnPaint();
+
+	return true;
+}
+
+bool HDRRender::ChangeEffectAux( const char* effect )
+{
+	std::string dir = "shaders/";
+
+	EffectGLSL *pEffect = new EffectGLSL;
+	bool ret = pEffect->Load( (dir + effect + ".vp").c_str(),
+		(dir + effect + ".fp").c_str() );			
+	if ( ret ) {
+		_pCurEffect = pEffect;
+		_effectMap[ effect ] = pEffect;
+	}
+	else {
+		SAFE_RELEASE( pEffect );
+	}
+	return ret;
 }

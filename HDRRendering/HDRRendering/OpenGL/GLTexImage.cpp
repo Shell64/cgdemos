@@ -102,7 +102,7 @@ void GLTexImage::FitViewport( )
 
 bool GLTexImage::BeginInitialize( void )
 {	
-	CheckErrorsGL( "BeginInitialize:" );
+	CheckErrorsGL( "GLTexImage::BeginInitialize:" );
 	if ( _texID > 0 )
 	{
 		this->Release();

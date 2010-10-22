@@ -267,3 +267,58 @@ const char* Label::GetTex( void )
 {
 	return NULL;
 }	
+
+StandardControl::StandardControl( const char* type, HWND hParent, int x, int y, int cx, int cy, DWORD style, const char* text /*= NULL */ )
+{
+	HINSTANCE hInstance = (HINSTANCE)GetModuleHandle( NULL );
+	_hWnd = CreateWindow( type, text, style,
+		x, y, cx, cy, hParent, NULL, hInstance, NULL );
+}
+
+StandardControl::~StandardControl( void )
+{
+	if ( NULL != _hWnd )
+		::DestroyWindow( _hWnd );
+}
+
+ComboBox::ComboBox( HWND hParent, int x, int y, int cx, int cy )
+: StandardControl( "COMBOBOX", hParent, x, y, cx, cy, 
+				  WS_CHILD|WS_VISIBLE|WS_TABSTOP|CBS_DROPDOWN, NULL )
+{
+	
+}
+
+int ComboBox::AddItem( const char* text, const char* value )
+{
+	int ret = SendMessage( _hWnd, CB_ADDSTRING, 0, (LPARAM)text );
+	if ( CB_ERR != ret ) {
+		_values.push_back( value );
+	}
+	return ret;
+}
+
+bool ComboBox::OnCommand( WPARAM wParam, LPARAM lParam )
+{
+	HWND handle = (HWND)lParam;
+	if ( handle != _hWnd ) return false;
+	int msg = HIWORD( wParam );
+	switch ( msg )
+	{
+	case CBN_SELCHANGE:		
+		return true;
+	default: 
+		break;
+	}	
+
+	return false;
+}
+
+int ComboBox::AddItems( const char* texts[], const char* values[], int n )
+{
+	int count = 0;
+	for ( int i = 0; i < n; ++i ) {
+		if ( AddItem( texts[ i ], values[ i ] ) ) 
+			++ count;
+	}
+	return count;
+}

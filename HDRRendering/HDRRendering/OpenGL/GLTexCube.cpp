@@ -10,13 +10,7 @@ GLTexCube::GLTexCube(void)
 }
 
 GLTexCube::~GLTexCube(void)
-{
-	if ( _texID > 0 )
-	{		
-		glDeleteTextures( 1, &_texID );
-		_texID = 0;		
-	}
-	_bIsValid = false;
+{	
 }
 
 void GLTexCube::Bind( void ) const
@@ -56,10 +50,9 @@ void GLTexCube::SetTextureParams( void )
 
 bool GLTexCube::BeginInitialize( void )
 {
-	if ( 0 != _texID ) {
-		LogError( "texture already initialized" );
-		return false;
-	}
+	CheckErrorsGL( "GLTexCube::BeginInitialize" );
+
+	this->Release();
 
 	glGenTextures( 1, &_texID );
 
@@ -73,7 +66,15 @@ bool GLTexCube::BeginInitialize( void )
 bool GLTexCube::EndInitialize( void )
 {
 	glBindTexture( GL_TEXTURE_CUBE_MAP, 0 );
-	return _bIsValid = true;
+
+	GLenum err = glGetError();
+	if ( GL_NO_ERROR != err ) {
+		LogError( "initialization error", "EndInitialize" );
+		return false;
+	}
+
+	_bIsValid = true;
+	return true;
 }
 
 bool GLTexCube::Initialize( int width, int height, GLint iformat /*= GL_RGBA32F */ )
@@ -94,6 +95,16 @@ bool GLTexCube::Initialize( int width[6], int height[6], GLint iformat /*= GL_RG
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, iformat, width[ i ], height[ i ], 0, 0, 0, NULL );
 	}
 	return EndInitialize();	
+}
+
+void GLTexCube::Release( void )
+{
+	if ( _texID > 0 )
+	{		
+		glDeleteTextures( 1, &_texID );
+		_texID = 0;		
+	}
+	_bIsValid = false;
 }
 
 /************************************************************************

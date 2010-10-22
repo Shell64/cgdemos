@@ -10,6 +10,12 @@ public:
 
 	virtual bool Initialize( void );
 
+	bool ChangeEnvironment( const char* filename );
+
+	bool ChangeModel( const char* filename );
+
+	bool ChangeEffect( const char* effect );
+
 	inline float GetExposure( void ) const { return _exposure; }
 	inline void SetExposure( float exposure ) {
 		_exposure = exposure;
@@ -83,6 +89,9 @@ public:
 
 	virtual bool OnLButtonUp( WPARAM wParam, LPARAM lParam );
 
+protected:
+	bool ChangeEffectAux( const char* effect );
+
 	void RenderSkybox( const GLTexCube& cubeTex );
 
 	void RenderMesh( const GLTexCube& cubeTex, const GLTexImage& texImage );
@@ -96,9 +105,13 @@ public:
 	void RenderRgb( void );
 
 protected:
+	typedef std::map< std::string, EffectGLSL* > EffectMap;
+
+	EffectMap _effectMap;	
+	EffectGLSL* _pCurEffect;
+
 	OrbitCamera _camera;
 	GLTexCubeInput _texCubeHdrInput;
-	EffectGLSL _reflectEffect;
 	GLTexInput _texHdrInput;
 	GLTexInput _texRgbInput;
 	GLTexCubeInput _texCubeRgbInput;

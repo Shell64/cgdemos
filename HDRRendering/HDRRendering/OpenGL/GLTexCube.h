@@ -28,6 +28,8 @@ protected:
 
 	bool EndInitialize( void );
 
+	void Release( void );
+
 protected:
 	GLuint _texID;
 	bool _bIsValid;

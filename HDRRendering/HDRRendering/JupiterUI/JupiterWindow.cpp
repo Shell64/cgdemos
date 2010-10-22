@@ -62,7 +62,11 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 
 	case WM_MOUSELEAVE:
 		CHECK_WND( window );
-		C_BREAK_R( window->OnMouseLeave( wParam, lParam ) );		
+		C_BREAK_R( window->OnMouseLeave( wParam, lParam ) );
+
+	case WM_MOUSEMOVE:
+		CHECK_WND( window );
+		C_BREAK_R( window->OnMouseMove( wParam, lParam ) );
 
 	case WM_SIZE:	
 		CHECK_WND( window );

@@ -19,6 +19,8 @@ protected:
 
 	virtual bool OnScroll( WPARAM wParam, LPARAM lParam );
 
+	virtual bool OnCommand( WPARAM wParam, LPARAM lParam );
+
 protected:
 	HDRRender* _pWidget;
 	Slider* _pExposureSlider;
@@ -39,6 +41,12 @@ protected:
 	Label* _pMCRLabel;
 	Label* _pMCGLabel;
 	Label* _pMCBLabel;
+
+	ComboBox* _pModelCombo;
+	Label* _pModelLabel;
+
+	ComboBox* _pEffectCombo;
+	Label* _pEffectLabel;
 };
 
 #endif//__HDR_DEMO_H__
