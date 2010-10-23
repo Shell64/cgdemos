@@ -148,28 +148,23 @@ bool HDRDemo::OnKeyDown( WPARAM wParam, LPARAM lParam )
 bool HDRDemo::OnScroll( WPARAM wParam, LPARAM lParam )
 {
 	bool ret = false;
-	if ( _pExposureSlider->OnScroll( wParam, lParam ) ) {
+	if ( ret = _pExposureSlider->OnScroll( wParam, lParam ) ) {
 		_pWidget->SetExposure( _pExposureSlider->GetValue() );
-		ret = true;
 	}
-	else if ( _pRFSlider->OnScroll( wParam, lParam ) ) {
+	else if ( ret = _pRFSlider->OnScroll( wParam, lParam ) ) {
 		_pWidget->SetReflectionFactor( _pRFSlider->GetValue() );
-		ret = true;
 	}	
-	else if ( _pBTSlider->OnScroll( wParam, lParam ) ) {
+	else if ( ret = _pBTSlider->OnScroll( wParam, lParam ) ) {
 		_pWidget->SetBrightThreshold( _pBTSlider->GetValue() );
-		ret = true;
 	}	
-	else if ( _pBFSlider->OnScroll( wParam, lParam ) ) {
+	else if ( ret = _pBFSlider->OnScroll( wParam, lParam ) ) {
 		_pWidget->SetBloomFactor( _pBFSlider->GetValue() );
-		ret = true;
 	}
-	else if ( _pMCBSlider->OnScroll( wParam, lParam ) ||
+	else if ( ret = ( _pMCBSlider->OnScroll( wParam, lParam ) ||
 		_pMCGSlider->OnScroll( wParam, lParam ) ||
-		_pMCRSlider->OnScroll( wParam, lParam ) ) {
+		_pMCRSlider->OnScroll( wParam, lParam ) ) ) {
 		_pWidget->SetMatColor(_pMCRSlider->GetValue(),
 		_pMCGSlider->GetValue(), _pMCBSlider->GetValue() );
-		ret = true;
 	}
 	
 	if ( ret )
@@ -181,11 +176,10 @@ bool HDRDemo::OnScroll( WPARAM wParam, LPARAM lParam )
 bool HDRDemo::OnCommand( WPARAM wParam, LPARAM lParam )
 {
 	bool ret = false;
-	if ( _pModelCombo->OnCommand( wParam, lParam ) ) {		
+	if ( ret = _pModelCombo->OnCommand( wParam, lParam ) ) {		
 		_pWidget->ChangeModel( _pModelCombo->GetSelectedValue() );	
-		ret = true;
 	}
-	else if ( _pEffectCombo->OnCommand( wParam, lParam ) ) {
+	else if ( ret = _pEffectCombo->OnCommand( wParam, lParam ) ) {
 		_pWidget->ChangeEffect( _pEffectCombo->GetSelectedValue() );
 		ret = true;
 	}	
