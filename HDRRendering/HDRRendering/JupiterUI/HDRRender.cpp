@@ -266,9 +266,9 @@ void HDRRender::RenderMesh( const GLTexCube& cubeTex, const GLTexImage& texImage
 	_pCurEffect->SetUniform( "env", 1 );
 	_pCurEffect->SetUniform( "tex", 0 );
 	_pCurEffect->SetUniform( "reflectionFactor", _reflectionFactor );
-	_pCurEffect->SetUniform( "fresnelBias", 0.2f );
-	_pCurEffect->SetUniform( "fresnelScale", 1.0f );
-	_pCurEffect->SetUniform( "fresnelPower", 1.0f );
+	_pCurEffect->SetUniform( "fresnelBias", _fresnelBias );
+	_pCurEffect->SetUniform( "fresnelScale", _fresnelScale );
+	_pCurEffect->SetUniform( "fresnelPower", _fresnelPower );
 	_pCurEffect->SetUniform( "etaRatio", _etaRatio.x );	
 	_pCurEffect->SetUniform( "eyePos", _camera.GetEyePos() );
 	_pCurEffect->SetUniform( "etaRatioRGB", _etaRatio );
