@@ -5,7 +5,6 @@
 
 #include "HDRDemo.h"
 
-//test
 //the pointers should be initialized with NULL
 HDRDemo::HDRDemo( LPCSTR lpszClassName, LPCTSTR lpszWindowName )
 :CBaseWindow( lpszClassName, lpszWindowName )
