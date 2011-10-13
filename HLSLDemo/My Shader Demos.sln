@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EuropeanFlag", "EuropeanFlag\EuropeanFlag.vcproj", "{B4C4EDA8-FA6A-411E-877B-46A75F98B195}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tiger", "Tiger\Tiger.vcproj", "{ECDA756B-6815-4136-B339-A02F518002F4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B4C4EDA8-FA6A-411E-877B-46A75F98B195}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B4C4EDA8-FA6A-411E-877B-46A75F98B195}.Debug|Win32.Build.0 = Debug|Win32
+		{B4C4EDA8-FA6A-411E-877B-46A75F98B195}.Release|Win32.ActiveCfg = Release|Win32
+		{B4C4EDA8-FA6A-411E-877B-46A75F98B195}.Release|Win32.Build.0 = Release|Win32
+		{ECDA756B-6815-4136-B339-A02F518002F4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{ECDA756B-6815-4136-B339-A02F518002F4}.Debug|Win32.Build.0 = Debug|Win32
+		{ECDA756B-6815-4136-B339-A02F518002F4}.Release|Win32.ActiveCfg = Release|Win32
+		{ECDA756B-6815-4136-B339-A02F518002F4}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
